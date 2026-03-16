@@ -799,142 +799,6 @@
     .stok-ok { color: var(--green); }
     .stok-low { color: var(--yellow); }
 
-    /* ==================== MULTI-LOKASI TABLE ==================== */
-    .lokasi-list {
-      margin-bottom: 16px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    .lokasi-list-header {
-      background: #eef0f6;
-      padding: 9px 14px;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      color: var(--text2);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-family: var(--font-display);
-    }
-    .lokasi-item {
-      display: grid;
-      grid-template-columns: auto 1fr auto auto;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
-      border-top: 1px solid var(--border);
-      cursor: pointer;
-      transition: background 0.12s;
-    }
-    .lokasi-item:hover { background: #f5f6fa; }
-    .lokasi-item.selected {
-      background: var(--accent-dim);
-      border-left: 3px solid var(--accent);
-    }
-    .lokasi-item.selected-keluar {
-      background: var(--red-dim);
-      border-left: 3px solid var(--red);
-    }
-    .lokasi-pin {
-      width: 34px; height: 34px;
-      background: var(--accent-dim);
-      border-radius: 7px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 16px;
-      flex-shrink: 0;
-    }
-    .lokasi-pin.keluar-pin { background: var(--red-dim); }
-    .lokasi-address { line-height: 1.3; }
-    .lokasi-address strong {
-      font-family: var(--font-display);
-      font-size: 14px;
-      font-weight: 700;
-      display: block;
-    }
-    .lokasi-address span { font-size: 11px; color: var(--text3); }
-    .lokasi-qty {
-      font-family: var(--font-display);
-      font-size: 18px;
-      font-weight: 800;
-      color: var(--accent);
-      text-align: right;
-      white-space: nowrap;
-    }
-    .lokasi-qty.low { color: var(--red); }
-    .lokasi-actions { display: flex; gap: 5px; }
-
-    .lokasi-empty {
-      padding: 20px;
-      text-align: center;
-      color: var(--text3);
-      font-size: 13px;
-    }
-
-    /* Total stok badge besar */
-    .total-stok-banner {
-      background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
-      border: 1px solid rgba(234,108,0,0.25);
-      border-radius: 8px;
-      padding: 12px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 14px;
-    }
-    .total-stok-banner .ts-label {
-      font-size: 12px;
-      color: var(--text2);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    .total-stok-banner .ts-value {
-      font-family: var(--font-display);
-      font-size: 28px;
-      font-weight: 800;
-      color: var(--accent);
-      display: flex;
-      align-items: baseline;
-      gap: 5px;
-    }
-    .total-stok-banner .ts-satuan {
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--text2);
-    }
-
-    /* Lokasi pilih section */
-    .lokasi-pilih-label {
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--text2);
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .lokasi-pilih-hint {
-      font-size: 11px;
-      color: var(--accent);
-      background: var(--accent-dim);
-      padding: 2px 8px;
-      border-radius: 10px;
-      font-weight: 600;
-    }
-
-    /* Modal pindah lokasi */
-    .pindah-arrow {
-      text-align: center;
-      font-size: 24px;
-      padding: 8px 0;
-      color: var(--accent);
-    }
-
     /* ==================== RESPONSIVE ==================== */
     @media (max-width: 900px) {
       .sidebar {
@@ -1235,31 +1099,27 @@
                     <span class="badge badge-orange" id="resKategori">—</span>
                   </div>
 
-                  <!-- Total stok dari semua lokasi -->
-                  <div class="total-stok-banner">
-                    <div>
-                      <div class="ts-label">Total Stok Seluruh Lokasi</div>
-                      <div style="font-size:11px;color:var(--text3);margin-top:2px" id="resLokasiCount">—</div>
+                  <div class="result-meta">
+                    <div class="meta-item">
+                      <div class="meta-label">Stok Saat Ini</div>
+                      <div class="meta-value" id="resStok">—</div>
                     </div>
-                    <div class="ts-value">
-                      <span id="resStok">—</span>
-                      <span class="ts-satuan" id="resSatuan">pcs</span>
+                    <div class="meta-item">
+                      <div class="meta-label">Satuan</div>
+                      <div class="meta-value" id="resSatuan">—</div>
                     </div>
                   </div>
 
-                  <!-- Daftar semua lokasi produk ini -->
-                  <div class="lokasi-list" id="lokasiListContainer">
-                    <div class="lokasi-list-header">
-                      <span>📍 Lokasi Penyimpanan</span>
-                      <button class="btn btn-outline btn-sm" style="padding:3px 10px;font-size:11px" onclick="openModalPindah()">⇄ Pindah</button>
-                    </div>
-                    <div id="lokasiListBody">
-                      <div class="lokasi-empty">Belum ada lokasi</div>
+                  <div class="result-location" id="resLocationBox">
+                    <div class="location-icon">📍</div>
+                    <div class="location-text">
+                      <div class="loc-label">Lokasi Penyimpanan</div>
+                      <div class="loc-value" id="resLokasi">Belum ditentukan</div>
                     </div>
                   </div>
 
                   <!-- Form Transaksi -->
-                  <div id="formTransaksiSection">
+                  <div id="formTransaksiMasuk">
                     <div class="form-row">
                       <div class="form-group">
                         <label class="form-label">Jumlah</label>
@@ -1271,26 +1131,27 @@
                       </div>
                     </div>
 
-                    <!-- MASUK: pilih / tambah lokasi -->
+                    <!-- Lokasi (untuk barang masuk) -->
                     <div id="lokasiMasukSection">
-                      <div class="lokasi-pilih-label">
-                        📍 Penempatan di Rak
-                        <span class="lokasi-pilih-hint" id="masukLokasiHint">Pilih atau tambah lokasi</span>
-                      </div>
+                      <div class="form-label" style="margin-bottom:10px">📍 Penempatan di Rak</div>
                       <div class="form-row">
                         <div class="form-group">
                           <label class="form-label">Rak</label>
-                          <select class="form-control" id="txRak" onchange="onLokasiChange()">
+                          <select class="form-control" id="txRak">
                             <option value="">Pilih Rak</option>
-                            <option value="1">Rak 1</option><option value="2">Rak 2</option>
-                            <option value="3">Rak 3</option><option value="4">Rak 4</option>
-                            <option value="5">Rak 5</option><option value="6">Rak 6</option>
-                            <option value="7">Rak 7</option><option value="8">Rak 8</option>
+                            <option value="1">Rak 1</option>
+                            <option value="2">Rak 2</option>
+                            <option value="3">Rak 3</option>
+                            <option value="4">Rak 4</option>
+                            <option value="5">Rak 5</option>
+                            <option value="6">Rak 6</option>
+                            <option value="7">Rak 7</option>
+                            <option value="8">Rak 8</option>
                           </select>
                         </div>
                         <div class="form-group">
                           <label class="form-label">Lantai</label>
-                          <select class="form-control" id="txLantai" onchange="onLokasiChange()">
+                          <select class="form-control" id="txLantai">
                             <option value="">Pilih Lantai</option>
                             <option value="1">Lantai 1</option>
                             <option value="2">Lantai 2</option>
@@ -1299,27 +1160,14 @@
                         </div>
                         <div class="form-group">
                           <label class="form-label">Baris</label>
-                          <select class="form-control" id="txBaris" onchange="onLokasiChange()">
+                          <select class="form-control" id="txBaris">
                             <option value="">Pilih Baris</option>
-                            <option value="1">Baris 1</option><option value="2">Baris 2</option>
-                            <option value="3">Baris 3</option><option value="4">Baris 4</option>
+                            <option value="1">Baris 1</option>
+                            <option value="2">Baris 2</option>
+                            <option value="3">Baris 3</option>
+                            <option value="4">Baris 4</option>
                           </select>
                         </div>
-                      </div>
-                      <!-- Info stok di lokasi yang dipilih -->
-                      <div id="lokasiStokInfo" style="display:none;margin-bottom:12px;padding:10px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:7px;font-size:13px;">
-                        <span id="lokasiStokInfoText"></span>
-                      </div>
-                    </div>
-
-                    <!-- KELUAR: pilih lokasi asal -->
-                    <div id="lokasiKeluarSection" style="display:none">
-                      <div class="lokasi-pilih-label">
-                        📍 Ambil dari Lokasi
-                        <span class="lokasi-pilih-hint" style="background:var(--red-dim);color:var(--red)" id="keluarLokasiHint">Klik lokasi di atas</span>
-                      </div>
-                      <div id="selectedLokasiKeluar" style="padding:10px 14px;background:var(--red-dim);border:1px solid rgba(220,38,38,0.2);border-radius:7px;font-size:13px;color:var(--red);margin-bottom:12px">
-                        ← Klik salah satu lokasi di atas untuk dipilih
                       </div>
                     </div>
 
@@ -1693,91 +1541,6 @@
   </div>
 </div>
 
-<!-- Modal Pindah Lokasi -->
-<div class="modal-backdrop" id="modalPindah">
-  <div class="modal" style="max-width:520px">
-    <div class="modal-header">
-      <div class="modal-title">⇄ PINDAH LOKASI</div>
-      <button class="modal-close" onclick="closeModal('modalPindah')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div style="font-size:13px;color:var(--text2);margin-bottom:16px">
-        Pindahkan barang <strong id="pindahNamaProduk">—</strong> dari satu lokasi ke lokasi lain.
-      </div>
-
-      <div class="form-label" style="margin-bottom:8px">📦 Dari Lokasi</div>
-      <div class="form-row" style="margin-bottom:4px">
-        <div class="form-group">
-          <label class="form-label">Rak</label>
-          <select class="form-control" id="pindahRakAsal">
-            <option value="">—</option>
-            <option value="1">Rak 1</option><option value="2">Rak 2</option>
-            <option value="3">Rak 3</option><option value="4">Rak 4</option>
-            <option value="5">Rak 5</option><option value="6">Rak 6</option>
-            <option value="7">Rak 7</option><option value="8">Rak 8</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Lantai</label>
-          <select class="form-control" id="pindahLantaiAsal">
-            <option value="">—</option>
-            <option value="1">Lantai 1</option><option value="2">Lantai 2</option><option value="3">Lantai 3</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Baris</label>
-          <select class="form-control" id="pindahBarisAsal">
-            <option value="">—</option>
-            <option value="1">Baris 1</option><option value="2">Baris 2</option>
-            <option value="3">Baris 3</option><option value="4">Baris 4</option>
-          </select>
-        </div>
-      </div>
-      <div id="pindahStokAsal" style="font-size:12px;color:var(--text3);margin-bottom:12px;padding-left:2px"></div>
-
-      <div class="pindah-arrow">↓</div>
-
-      <div class="form-label" style="margin-bottom:8px;margin-top:4px">🎯 Ke Lokasi</div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Rak</label>
-          <select class="form-control" id="pindahRakTujuan">
-            <option value="">—</option>
-            <option value="1">Rak 1</option><option value="2">Rak 2</option>
-            <option value="3">Rak 3</option><option value="4">Rak 4</option>
-            <option value="5">Rak 5</option><option value="6">Rak 6</option>
-            <option value="7">Rak 7</option><option value="8">Rak 8</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Lantai</label>
-          <select class="form-control" id="pindahLantaiTujuan">
-            <option value="">—</option>
-            <option value="1">Lantai 1</option><option value="2">Lantai 2</option><option value="3">Lantai 3</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Baris</label>
-          <select class="form-control" id="pindahBarisTujuan">
-            <option value="">—</option>
-            <option value="1">Baris 1</option><option value="2">Baris 2</option>
-            <option value="3">Baris 3</option><option value="4">Baris 4</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Jumlah yang Dipindah</label>
-        <input type="number" class="form-control" id="pindahJumlah" value="1" min="1">
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modalPindah')">Batal</button>
-      <button class="btn btn-primary" onclick="submitPindahLokasi()">⇄ Pindahkan</button>
-    </div>
-  </div>
-</div>
-
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
 
@@ -1790,75 +1553,54 @@
 // =============================================
 // STATE & GLOBALS
 // =============================================
-let currentPage          = 'dashboard';
+let currentPage = 'dashboard';
 let currentTipeTransaksi = 'MASUK';
-let scannerRunning       = false;
-let miniScannerRunning   = false;
-let currentScanResult    = null;
-let allProdukData        = [];
-let deleteTargetId       = '';
-let lokasiData           = [];
-let scanTimeout          = null;
+let scannerRunning = false;
+let miniScannerRunning = false;
+let currentScanResult = null;
+let allProdukData = [];
+let deleteTargetId = '';
+let lokasiData = [];
+// let scanTimeout = null;
 
-// --- Barcode voting / stabilisasi ---
-// QuaggaJS kadang membaca parsial / berbeda tiap frame.
-// Sistem voting: kumpulkan SCAN_VOTES_NEEDED hasil yang SAMA sebelum diterima.
-const SCAN_VOTES_NEEDED   = 3;     // berapa kali harus konsisten
-const SCAN_MIN_CONFIDENCE = 0.65;  // minimum confidence score (0–1)
-const SCAN_BUFFER_SIZE    = 10;    // panjang ringkas buffer
-let   scanBuffer          = [];    // array string code terakhir
-let   scanLocked          = false; // cegah double-trigger saat konfirmasi
 
-// =============================================
-// callAPI – otomatis pilih google.script.run ATAU fetch
-// Isi API_URL jika HTML diakses di luar Google Apps Script (file lokal / hosting)
-// =============================================
-const API_URL = 'https://script.google.com/macros/s/AKfycbx1KNiotqJiFFscBzEe-ozBA_QEgBX111BtFbySWPgZTtmGWPnRFh4TO-a6M1khcKxg/exec'; // ← GANTI dengan URL deploy GAS Anda jika pakai mode lokal
-                    //   Contoh: 'https://script.google.com/macros/s/AKfy.../exec'
-                    //   Kosongkan jika pakai google.script.run (HTML di dalam GAS)
+// MASUKKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI
+const API_URL = "https://script.google.com/macros/s/AKfycbx1KNiotqJiFFscBzEe-ozBA_QEgBX111BtFbySWPgZTtmGWPnRFh4TO-a6M1khcKxg/exec"; 
 
-function callAPI(action, payload) {
-  payload = payload === undefined ? null : payload;
-
-  if (!API_URL) {
-    // ---- mode google.script.run (HTML di-serve oleh GAS) ----
-    return new Promise((resolve, reject) => {
-      let runner = google.script.run
-        .withSuccessHandler(resolve)
-        .withFailureHandler(reject);
-      // Panggil fungsi sesuai action
-      if (payload !== null) runner[action](payload);
-      else                   runner[action]();
-    });
-  }
-
-  // ---- mode fetch (HTML lokal atau hosting eksternal) ----
+// Helper untuk menggantikan google.script.run
+function callAPI(action, payload = null) {
   return fetch(API_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({ action, payload })
-  }).then(r => r.json());
+    // Menggunakan text/plain untuk menghindari error CORS Preflight (OPTIONS) dari browser
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
+    body: JSON.stringify({ action: action, payload: payload })
+  })
+  .then(response => response.json());
 }
-
 // =============================================
 // INIT
 // =============================================
 document.addEventListener('DOMContentLoaded', function() {
   updateClock();
   setInterval(updateClock, 1000);
-
+  
   const d = new Date();
   document.getElementById('currentDate').textContent = d.toLocaleDateString('id-ID', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
   });
-
+  
   loadDashboard();
-  callAPI('initSheets').catch(e => console.warn('initSheets:', e));
+  initSheets();
 });
 
+function initSheets() {
+  callAPI('initSheets').catch(console.error);
+}
+
 function updateClock() {
-  document.getElementById('topbarTime').textContent =
-    new Date().toLocaleTimeString('id-ID');
+  const now = new Date();
+  const t = now.toLocaleTimeString('id-ID');
+  document.getElementById('topbarTime').textContent = t;
 }
 
 // =============================================
@@ -1937,13 +1679,13 @@ function loadDashboard() {
       hideLoading();
       if (!data.success) return;
       document.getElementById('stat-total-produk').textContent = data.totalProduk;
-      document.getElementById('stat-masuk').textContent        = data.masukHariIni;
-      document.getElementById('stat-keluar').textContent       = data.keluarHariIni;
-      document.getElementById('stat-stok-rendah').textContent  = data.stokRendah;
+      document.getElementById('stat-masuk').textContent = data.masukHariIni;
+      document.getElementById('stat-keluar').textContent = data.keluarHariIni;
+      document.getElementById('stat-stok-rendah').textContent = data.stokRendah;
 
       const tbody = document.getElementById('dashboard-transaksi-tbody');
       if (!data.transaksiTerbaru || data.transaksiTerbaru.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text3)">Belum ada transaksi</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-state" style="text-align:center;padding:30px;color:var(--text3)">Belum ada transaksi</td></tr>';
         return;
       }
       tbody.innerHTML = data.transaksiTerbaru.map(t => `
@@ -1954,135 +1696,134 @@ function loadDashboard() {
           <td><span class="badge ${t.tipe==='MASUK'?'badge-green':'badge-red'}">${t.tipe}</span></td>
           <td>${t.jumlah}</td>
           <td style="font-size:12px">${t.rak?'Rak '+t.rak+' L'+t.lantai+' B'+t.baris:'—'}</td>
-        </tr>`).join('');
+        </tr>
+      `).join('');
     })
     .catch(err => { hideLoading(); showToast('Gagal memuat dashboard: ' + err, 'error'); });
 }
 
 // =============================================
-// SCANNER  –  sistem voting untuk stabilitas barcode
+// SCANNER
+// =============================================
+// function startScanner() {
+//   const viewport = document.getElementById('scanner-viewport');
+//   document.getElementById('scanIdle').style.display = 'none';
+//   document.getElementById('scannerOverlay').style.display = 'block';
+//   document.getElementById('scannerBox').classList.add('active');
+//   document.getElementById('btnStartScan').disabled = true;
+//   document.getElementById('btnStopScan').disabled = false;
+
+//   Quagga.init({
+//     inputStream: {
+//       name: "Live",
+//       type: "LiveStream",
+//       target: viewport,
+//       constraints: {
+//         width: { min: 320, ideal: 640 },
+//         height: { min: 240, ideal: 480 },
+//         facingMode: "environment"
+//       }
+//     },
+//     decoder: {
+//       readers: [
+//         "code_128_reader",
+//         "ean_reader",
+//         "ean_8_reader",
+//         "code_39_reader",
+//         "code_93_reader",
+//         "codabar_reader",
+//         "upc_reader",
+//         "upc_e_reader",
+//         "i2of5_reader",
+//         "2of5_reader",
+//         "code_39_vin_reader"
+//       ]
+//     },
+//     locate: true,
+//     frequency: 10
+//   }, function(err) {
+//     if (err) {
+//       showToast('Gagal mengakses kamera: ' + err, 'error');
+//       stopScanner();
+//       return;
+//     }
+//     Quagga.start();
+//     scannerRunning = true;
+//   });
+
+//   Quagga.onDetected(function(result) {
+//     if (result && result.codeResult && result.codeResult.code) {
+//       const code = result.codeResult.code;
+      
+//       // Debounce - jangan proses yang sama berulang
+//       clearTimeout(scanTimeout);
+//       scanTimeout = setTimeout(() => {
+//         showScanIndicator('scanIndicator');
+//         playBeep();
+//         stopScanner();
+//         document.getElementById('manualBarcode').value = code;
+//         processBarcode(code);
+//       }, 200);
+//     }
+//   });
+// }
+
+
+// =============================================
+// SCANNER — VERSI DIPERBAIKI
 // =============================================
 
-/* -------------------------------------------------------
-   normalizeBarcode: hapus spasi & karakter tak tercetak,
-   lalu normalisasi format EAN-13 / EAN-8 (tambah leading 0
-   jika panjang tidak sesuai standar)
-------------------------------------------------------- */
-function normalizeBarcode(raw, format) {
-  let code = String(raw).trim().replace(/\s+/g, '');
-
-  // Untuk EAN-13: pastikan panjang 13 digit
-  if (format && (format.toLowerCase().includes('ean') || format.toLowerCase().includes('upc'))) {
-    // Hapus semua non-digit
-    const digits = code.replace(/\D/g, '');
-    if (digits.length === 12) {
-      // UPC-A → tambah leading 0 jadi EAN-13
-      code = '0' + digits;
-    } else if (digits.length === 13 || digits.length === 8) {
-      code = digits;
-    }
-    // Validasi check-digit EAN-13
-    if (digits.length === 13 && !validateEAN13(digits)) {
-      return null; // buang hasil yang check-digit-nya salah
-    }
-  }
-
-  return code;
-}
-
-/* Validasi check digit EAN-13 */
-function validateEAN13(digits) {
-  if (digits.length !== 13) return false;
-  let sum = 0;
-  for (let i = 0; i < 12; i++) {
-    sum += parseInt(digits[i]) * (i % 2 === 0 ? 1 : 3);
-  }
-  const check = (10 - (sum % 10)) % 10;
-  return check === parseInt(digits[12]);
-}
-
-/* Voting: kembalikan code yang paling sering muncul
-   di scanBuffer, atau null jika belum cukup konsisten */
-function getVotedCode() {
-  if (scanBuffer.length < SCAN_VOTES_NEEDED) return null;
-
-  const freq = {};
-  scanBuffer.forEach(c => { freq[c] = (freq[c] || 0) + 1; });
-  const winner = Object.entries(freq).sort((a, b) => b[1] - a[1])[0];
-
-  return winner && winner[1] >= SCAN_VOTES_NEEDED ? winner[0] : null;
-}
-
-/* Progress indicator teks di dalam kotak scanner */
-function updateScanProgress(code) {
-  const el = document.getElementById('scanProgressText');
-  if (!el) return;
-  const freq = {};
-  scanBuffer.forEach(c => { freq[c] = (freq[c] || 0) + 1; });
-  const cnt = freq[code] || 0;
-  const dots = '●'.repeat(cnt) + '○'.repeat(Math.max(0, SCAN_VOTES_NEEDED - cnt));
-  el.textContent = `Membaca... ${dots}  (${cnt}/${SCAN_VOTES_NEEDED})`;
-}
+// State konsensus: kumpulkan hasil scan sebelum memutuskan
+let scanBuffer = {};
+const CONSENSUS_THRESHOLD = 3; // barcode harus terdeteksi 3x berturut-turut
+const CONSENSUS_WINDOW_MS = 1500; // dalam jendela 1.5 detik
 
 function startScanner() {
-  scanBuffer  = [];
-  scanLocked  = false;
-
-  document.getElementById('scanIdle').style.display    = 'none';
+  const viewport = document.getElementById('scanner-viewport');
+  document.getElementById('scanIdle').style.display = 'none';
   document.getElementById('scannerOverlay').style.display = 'block';
   document.getElementById('scannerBox').classList.add('active');
   document.getElementById('btnStartScan').disabled = true;
-  document.getElementById('btnStopScan').disabled  = false;
+  document.getElementById('btnStopScan').disabled = false;
 
-  // Tampilkan progress text
-  let prog = document.getElementById('scanProgressText');
-  if (!prog) {
-    prog = document.createElement('div');
-    prog.id = 'scanProgressText';
-    prog.style.cssText = 'position:absolute;bottom:8px;left:0;right:0;text-align:center;'
-      + 'font-size:12px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.8);'
-      + 'font-family:var(--font-mono);letter-spacing:1px;z-index:10;';
-    document.getElementById('scannerBox').appendChild(prog);
-  }
-  prog.textContent = 'Arahkan kamera ke barcode...';
+  // Reset buffer konsensus setiap mulai scan
+  scanBuffer = {};
 
   Quagga.init({
     inputStream: {
-      name: 'Live',
-      type: 'LiveStream',
-      target: document.getElementById('scanner-viewport'),
+      name: "Live",
+      type: "LiveStream",
+      target: viewport,
       constraints: {
-        width:  { min: 640,  ideal: 1280 },
-        height: { min: 480,  ideal: 720  },
-        facingMode: 'environment',
-        aspectRatio: { ideal: 1.777 }
-      },
-      area: { // fokus ke area tengah kamera
-        top: '20%', right: '10%', left: '10%', bottom: '20%'
+        width: { min: 640, ideal: 1280 },
+        height: { min: 480, ideal: 720 },
+        facingMode: "environment",
+        // Matikan autofokus terus-menerus (penyebab hasil tidak stabil)
+        advanced: [{ focusMode: "continuous" }]
+      }
+    },
+    decoder: {
+      // ✅ HANYA aktifkan reader yang relevan untuk gudang
+      // EAN-13 = format utama produk retail Indonesia (termasuk AQUA)
+      readers: [
+        "ean_reader",        // EAN-13 & EAN-8 — produk consumer
+        "code_128_reader",   // Code 128 — barcode internal gudang
+        "code_39_reader",    // Code 39 — peralatan industri
+      ],
+      // Wajibkan checksum valid (tolak hasil yang tidak lolos validasi)
+      debug: {
+        drawBoundingBox: false,
+        showFrequency: false,
+        drawScanline: false,
+        showPattern: false
       }
     },
     locator: {
-      patchSize: 'medium',
+      patchSize: "medium",      // "medium" lebih akurat dari "large"
       halfSample: true
     },
-    numOfWorkers: 2,
-    frequency: 15,
-    decoder: {
-      readers: [
-        // EAN/UPC diprioritaskan (format paling umum di kardus gudang)
-        { format: 'ean_reader',      config: {} },
-        { format: 'ean_8_reader',    config: {} },
-        { format: 'upc_reader',      config: {} },
-        { format: 'upc_e_reader',    config: {} },
-        // Code 128 untuk barcode panjang batang
-        { format: 'code_128_reader', config: {} },
-        { format: 'code_39_reader',  config: {} },
-        { format: 'code_93_reader',  config: {} },
-        { format: 'codabar_reader',  config: {} }
-      ],
-      debug: { drawBoundingBox: true, showFrequency: false,
-               drawScanline: true, showPattern: false }
-    },
+    numOfWorkers: 2,             // Cukup 2 worker untuk stabilitas
+    frequency: 15,               // 15 frame per detik
     locate: true
   }, function(err) {
     if (err) {
@@ -2094,108 +1835,90 @@ function startScanner() {
     scannerRunning = true;
   });
 
-  // onProcessed: gambar garis hijau saat barcode terdeteksi
-  Quagga.onProcessed(function(result) {
-    const ctx = Quagga.canvas.ctx.overlay;
-    const cvs = Quagga.canvas.dom.overlay;
-    if (!ctx) return;
-    ctx.clearRect(0, 0, cvs.width, cvs.height);
-
-    if (result && result.boxes) {
-      result.boxes.filter(b => b !== result.box).forEach(box => {
-        Quagga.ImageDebug.drawPath(box, { x: 0, y: 1 }, ctx, { color: 'rgba(255,165,0,0.4)', lineWidth: 1 });
-      });
-    }
-    if (result && result.box) {
-      Quagga.ImageDebug.drawPath(result.box, { x: 0, y: 1 }, ctx, { color: '#00d084', lineWidth: 2 });
-    }
-    if (result && result.codeResult && result.codeResult.code) {
-      Quagga.ImageDebug.drawPath(result.line, { x: 'x', y: 'y' }, ctx, { color: '#ea6c00', lineWidth: 3 });
-    }
-  });
-
-  // onDetected: sistem voting
   Quagga.onDetected(function(result) {
-    if (scanLocked || !result || !result.codeResult) return;
+    if (!result || !result.codeResult) return;
 
-    const raw        = result.codeResult.code;
-    const format     = result.codeResult.format;
-    const confidence = result.codeResult.startInfo
-      ? (result.codeResult.startInfo.error + result.codeResult.endInfo.error) / 2
-      : 1;
+    const code = result.codeResult.code;
+    const format = result.codeResult.format;
 
-    // Filter confidence: buang pembacaan yang ragu-ragu
-    // QuaggaJS: error mendekati 0 = bagus. Kita buang jika error > threshold
-    if (confidence > (1 - SCAN_MIN_CONFIDENCE)) return;
+    // ✅ Validasi 1: Tolak hasil kosong atau terlalu pendek
+    if (!code || code.length < 6) return;
 
-    // Normalisasi dan validasi
-    const code = normalizeBarcode(raw, format);
-    if (!code || code.length < 4) return; // terlalu pendek = bukan barcode valid
-
-    // Masukkan ke buffer
-    scanBuffer.push(code);
-    if (scanBuffer.length > SCAN_BUFFER_SIZE)
-      scanBuffer.shift(); // buang yang paling lama
-
-    updateScanProgress(code);
-
-    // Cek voting
-    const voted = getVotedCode();
-    if (voted) {
-      scanLocked = true;
-      showScanIndicator('scanIndicator');
-      playBeep();
-      clearTimeout(scanTimeout);
-      scanTimeout = setTimeout(() => {
-        stopScanner();
-        document.getElementById('manualBarcode').value = voted;
-        processBarcode(voted);
-      }, 100);
+    // ✅ Validasi 2: Tolak jika error rate tinggi (hasil tidak yakin)
+    // decodedCodes berisi array segment; cek rata-rata error
+    const errors = result.codeResult.decodedCodes
+      .filter(x => x.error !== undefined)
+      .map(x => x.error);
+    if (errors.length > 0) {
+      const avgError = errors.reduce((a, b) => a + b, 0) / errors.length;
+      if (avgError > 0.15) return; // Tolak jika error rate > 15%
     }
+
+    // ✅ Validasi 3: Mekanisme konsensus
+    // Barcode harus muncul CONSENSUS_THRESHOLD kali dalam CONSENSUS_WINDOW_MS
+    const now = Date.now();
+
+    if (!scanBuffer[code]) {
+      scanBuffer[code] = { count: 0, firstSeen: now };
+    }
+
+    // Reset jika sudah terlalu lama (scan dari sesi lama)
+    if (now - scanBuffer[code].firstSeen > CONSENSUS_WINDOW_MS) {
+      scanBuffer[code] = { count: 0, firstSeen: now };
+    }
+
+    scanBuffer[code].count++;
+
+    // Belum cukup deteksi, tunggu
+    if (scanBuffer[code].count < CONSENSUS_THRESHOLD) return;
+
+    // ✅ Konsensus tercapai! Proses barcode
+    scanBuffer = {}; // Reset buffer
+
+    showScanIndicator('scanIndicator');
+    playBeep();
+    stopScanner();
+
+    // Normalisasi: hapus spasi, pastikan format bersih
+    const cleanCode = code.trim().replace(/\s+/g, '');
+    document.getElementById('manualBarcode').value = cleanCode;
+    processBarcode(cleanCode);
   });
 }
 
+
 function stopScanner() {
-  clearTimeout(scanTimeout);
   if (scannerRunning) {
-    try { Quagga.stop(); } catch(e) {}
+    Quagga.stop();
     scannerRunning = false;
   }
-  scanBuffer = [];
-  scanLocked = false;
-
-  const vp = document.getElementById('scanner-viewport');
-  if (vp) vp.innerHTML = '';
+  document.getElementById('scanner-viewport').innerHTML = '';
   document.getElementById('scannerOverlay').style.display = 'none';
   document.getElementById('scannerBox').classList.remove('active');
   document.getElementById('scanIdle').style.display = 'block';
   document.getElementById('btnStartScan').disabled = false;
-  document.getElementById('btnStopScan').disabled  = true;
-
-  const prog = document.getElementById('scanProgressText');
-  if (prog) prog.remove();
+  document.getElementById('btnStopScan').disabled = true;
 }
 
 function showScanIndicator(id) {
   const el = document.getElementById(id);
-  if (!el) return;
   el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 1800);
+  setTimeout(() => el.classList.remove('show'), 1500);
 }
 
 function playBeep() {
   try {
-    const ctx  = new (window.AudioContext || window.webkitAudioContext)();
-    const osc  = ctx.createOscillator();
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);
     gain.connect(ctx.destination);
-    osc.frequency.value = 1047; // nada tinggi seperti scanner kasir
+    osc.frequency.value = 880;
     osc.type = 'sine';
-    gain.gain.setValueAtTime(0.4, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
     osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.12);
+    osc.stop(ctx.currentTime + 0.15);
   } catch(e) {}
 }
 
@@ -2207,185 +1930,71 @@ function processBarcode(barcode) {
     showToast('Masukkan kode barcode terlebih dahulu', 'error');
     return;
   }
-  // Normalisasi: hapus spasi (misal "2 88 86008 10105 7" → "2888600810105 7" → "28886008101057")
-  barcode = String(barcode).trim().replace(/\s+/g, '');
-  document.getElementById('manualBarcode').value = barcode; // tampilkan yg sudah bersih
-
+  barcode = barcode.trim();
+  
   showLoading();
   callAPI('getProdukByBarcode', barcode)
     .then(result => {
       hideLoading();
-      if (result.success) showResultFound(result.data);
-      else                showResultNotFound(barcode);
+      if (result.success) {
+        showResultFound(result.data);
+      } else {
+        showResultNotFound(barcode);
+      }
     })
-    .catch(err => { hideLoading(); showToast('Error: ' + err, 'error'); });
+    .catch(err => {
+      hideLoading();
+      showToast('Error: ' + err, 'error');
+    });
 }
 
 function showResultFound(produk) {
   currentScanResult = produk;
-  document.getElementById('resultEmpty').style.display    = 'none';
+  document.getElementById('resultEmpty').style.display = 'none';
   document.getElementById('resultNotFound').style.display = 'none';
   document.getElementById('resultFound').classList.add('show');
 
-  document.getElementById('resNama').textContent     = produk.nama;
-  document.getElementById('resBarcode').textContent  = produk.barcode;
+  document.getElementById('resNama').textContent = produk.nama;
+  document.getElementById('resBarcode').textContent = produk.barcode;
   document.getElementById('resKategori').textContent = produk.kategori || 'Umum';
-  document.getElementById('resStok').textContent     = produk.stok;
-  document.getElementById('resSatuan').textContent   = produk.satuan || 'pcs';
+  document.getElementById('resStok').textContent = produk.stok;
+  document.getElementById('resSatuan').textContent = produk.satuan || 'pcs';
 
-  const lokList = produk.lokasi || [];
-  document.getElementById('resLokasiCount').textContent =
-    lokList.length === 0 ? 'Belum ada lokasi penyimpanan'
-    : `Tersebar di ${lokList.length} lokasi`;
+  const lokStr = produk.rak ? `Rak ${produk.rak} — Lantai ${produk.lantai} — Baris ${produk.baris}` : 'Belum ditentukan';
+  document.getElementById('resLokasi').textContent = lokStr;
 
-  renderLokasiList(lokList);
-
-  selectedLokasiKeluar = null;
-  document.getElementById('txRak').value    = '';
-  document.getElementById('txLantai').value = '';
-  document.getElementById('txBaris').value  = '';
-  document.getElementById('lokasiStokInfo').style.display = 'none';
-
-  updateTransaksiUI();
-}
-
-function renderLokasiList(lokList) {
-  const container = document.getElementById('lokasiListBody');
-  if (!lokList || lokList.length === 0) {
-    container.innerHTML = '<div class="lokasi-empty">Belum ada lokasi penyimpanan terdaftar</div>';
-    return;
+  // Pre-fill lokasi untuk barang masuk
+  if (produk.rak) {
+    document.getElementById('txRak').value = produk.rak;
+    document.getElementById('txLantai').value = produk.lantai;
+    document.getElementById('txBaris').value = produk.baris;
   }
-  container.innerHTML = lokList.map((l, idx) => {
-    const isLow = l.jumlah <= 5;
-    return `
-      <div class="lokasi-item" id="lokasiItem_${idx}"
-           onclick="selectLokasiKeluar(${idx},\'${l.rak}\',\'${l.lantai}\',\'${l.baris}\',${l.jumlah})">
-        <div class="lokasi-pin ${currentTipeTransaksi==='KELUAR'?'keluar-pin':''}">📍</div>
-        <div class="lokasi-address">
-          <strong>Rak ${l.rak} · Lantai ${l.lantai} · Baris ${l.baris}</strong>
-          <span>Update: ${l.lastUpdated||'—'}</span>
-        </div>
-        <div class="lokasi-qty ${isLow?'low':''}">${l.jumlah} <span style="font-size:12px;font-weight:400;color:var(--text3)">${currentScanResult?currentScanResult.satuan:'pcs'}</span></div>
-        <div class="lokasi-actions">
-          <button class="btn btn-danger btn-sm btn-icon"
-            onclick="event.stopPropagation();hapusLokasiItem(\'${l.rak}\',\'${l.lantai}\',\'${l.baris}\')"
-            title="Hapus lokasi ini">🗑️</button>
-        </div>
-      </div>`;
-  }).join('');
-}
+  
+  // Update button teks
+  const btn = document.getElementById('btnTransaksi');
+  btn.textContent = currentTipeTransaksi === 'MASUK' ? '✓ Konfirmasi Masuk' : '✓ Konfirmasi Keluar';
+  btn.className = 'btn ' + (currentTipeTransaksi === 'MASUK' ? 'btn-success' : 'btn-danger');
 
-let selectedLokasiKeluar = null;
-function selectLokasiKeluar(idx, rak, lantai, baris, stok) {
-  if (currentTipeTransaksi !== 'KELUAR') {
-    document.getElementById('txRak').value    = rak;
-    document.getElementById('txLantai').value = lantai;
-    document.getElementById('txBaris').value  = baris;
-    onLokasiChange();
-    return;
-  }
-  selectedLokasiKeluar = { rak, lantai, baris, stok };
-  document.querySelectorAll('.lokasi-item').forEach(el => el.classList.remove('selected-keluar'));
-  const el = document.getElementById('lokasiItem_' + idx);
-  if (el) el.classList.add('selected-keluar');
-  document.getElementById('selectedLokasiKeluar').innerHTML =
-    `✓ Mengambil dari <strong>Rak ${rak} · Lantai ${lantai} · Baris ${baris}</strong> &nbsp;|&nbsp; Stok: <strong>${stok}</strong>`;
-  document.getElementById('keluarLokasiHint').textContent = `R${rak} L${lantai} B${baris}`;
-}
-
-function onLokasiChange() {
-  const rak    = document.getElementById('txRak').value;
-  const lantai = document.getElementById('txLantai').value;
-  const baris  = document.getElementById('txBaris').value;
-  const info   = document.getElementById('lokasiStokInfo');
-  const infoTxt= document.getElementById('lokasiStokInfoText');
-  if (!rak || !lantai || !baris || !currentScanResult) { info.style.display='none'; return; }
-  const existing = (currentScanResult.lokasi||[]).find(l =>
-    String(l.rak)===String(rak) && String(l.lantai)===String(lantai) && String(l.baris)===String(baris));
-  const hint = document.getElementById('masukLokasiHint');
-  if (existing) {
-    info.style.cssText='display:block;margin-bottom:12px;padding:10px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:7px;font-size:13px;';
-    infoTxt.innerHTML=`✓ Sudah ada <strong>${existing.jumlah} ${currentScanResult.satuan}</strong> di lokasi ini. Jumlah akan <strong>ditambahkan</strong>.`;
-    hint.textContent='Tambah ke lokasi ini';
-  } else {
-    info.style.cssText='display:block;margin-bottom:12px;padding:10px 14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:7px;font-size:13px;';
-    infoTxt.innerHTML='ℹ️ Lokasi ini <strong>belum dipakai</strong> untuk produk ini. Akan dibuat entri baru.';
-    hint.textContent='Lokasi baru';
-  }
+  // Show/hide lokasi section for masuk/keluar
+  document.getElementById('lokasiMasukSection').style.display = currentTipeTransaksi === 'MASUK' ? 'block' : 'none';
 }
 
 function showResultNotFound(barcode) {
-  currentScanResult    = null;
-  selectedLokasiKeluar = null;
-  document.getElementById('resultEmpty').style.display    = 'none';
+  currentScanResult = null;
+  document.getElementById('resultEmpty').style.display = 'none';
   document.getElementById('resultFound').classList.remove('show');
   document.getElementById('resultNotFound').style.display = 'block';
-  document.getElementById('notFoundBarcode').textContent  = barcode;
+  document.getElementById('notFoundBarcode').textContent = barcode;
+  
+  // Pre-fill barcode di modal
   window._pendingBarcode = barcode;
 }
 
 function showTambahProduk() {
   openModalTambahProduk();
-  if (window._pendingBarcode) document.getElementById('produkBarcode').value = window._pendingBarcode;
-}
-
-function hapusLokasiItem(rak, lantai, baris) {
-  if (!currentScanResult) return;
-  if (!confirm(`Hapus lokasi Rak ${rak} Lantai ${lantai} Baris ${baris}?`)) return;
-  showLoading();
-  callAPI('hapusLokasiEntry', { rak, lantai, baris, barcode: currentScanResult.barcode })
-    .then(result => {
-      hideLoading();
-      if (result.success) {
-        showToast('Lokasi dihapus', 'success');
-        currentScanResult.lokasi = (currentScanResult.lokasi||[]).filter(l =>
-          !(String(l.rak)===String(rak)&&String(l.lantai)===String(lantai)&&String(l.baris)===String(baris)));
-        currentScanResult.stok = result.totalStok;
-        document.getElementById('resStok').textContent = result.totalStok;
-        const cnt = currentScanResult.lokasi.length;
-        document.getElementById('resLokasiCount').textContent =
-          cnt===0 ? 'Belum ada lokasi penyimpanan' : `Tersebar di ${cnt} lokasi`;
-        renderLokasiList(currentScanResult.lokasi);
-      } else showToast('Gagal: '+result.message,'error');
-    }).catch(err=>{ hideLoading(); showToast('Error: '+err,'error'); });
-}
-
-function openModalPindah() {
-  if (!currentScanResult) return;
-  document.getElementById('pindahNamaProduk').textContent = currentScanResult.nama;
-  if (selectedLokasiKeluar) {
-    document.getElementById('pindahRakAsal').value    = selectedLokasiKeluar.rak;
-    document.getElementById('pindahLantaiAsal').value = selectedLokasiKeluar.lantai;
-    document.getElementById('pindahBarisAsal').value  = selectedLokasiKeluar.baris;
-    document.getElementById('pindahStokAsal').textContent = `Stok tersedia: ${selectedLokasiKeluar.stok}`;
-  } else {
-    ['pindahRakAsal','pindahLantaiAsal','pindahBarisAsal'].forEach(id=>document.getElementById(id).value='');
-    document.getElementById('pindahStokAsal').textContent='';
+  if (window._pendingBarcode) {
+    document.getElementById('produkBarcode').value = window._pendingBarcode;
   }
-  openModal('modalPindah');
-}
-
-function submitPindahLokasi() {
-  if (!currentScanResult) return;
-  const rakA=document.getElementById('pindahRakAsal').value;
-  const ltA =document.getElementById('pindahLantaiAsal').value;
-  const brA =document.getElementById('pindahBarisAsal').value;
-  const rakT=document.getElementById('pindahRakTujuan').value;
-  const ltT =document.getElementById('pindahLantaiTujuan').value;
-  const brT =document.getElementById('pindahBarisTujuan').value;
-  const qty =parseInt(document.getElementById('pindahJumlah').value)||0;
-  if(!rakA||!ltA||!brA||!rakT||!ltT||!brT){showToast('Lengkapi semua lokasi','error');return;}
-  if(!qty){showToast('Jumlah harus > 0','error');return;}
-  if(rakA===rakT&&ltA===ltT&&brA===brT){showToast('Lokasi asal dan tujuan sama!','error');return;}
-  showLoading();
-  callAPI('pindahLokasi',{barcode:currentScanResult.barcode,namaProduk:currentScanResult.nama,
-    rakAsal:rakA,lantaiAsal:ltA,barisAsal:brA,rakTujuan:rakT,lantaiTujuan:ltT,barisTujuan:brT,
-    jumlah:qty,operator:'Admin'})
-    .then(result=>{
-      hideLoading();
-      if(result.success){showToast('Barang berhasil dipindah!','success');closeModal('modalPindah');processBarcode(currentScanResult.barcode);}
-      else showToast('Gagal: '+result.message,'error');
-    }).catch(err=>{hideLoading();showToast('Error: '+err,'error');});
 }
 
 // =============================================
@@ -2393,71 +2002,73 @@ function submitPindahLokasi() {
 // =============================================
 function setTipeTransaksi(tipe) {
   currentTipeTransaksi = tipe;
-  document.getElementById('tab-masuk').classList.toggle('active', tipe==='MASUK');
-  document.getElementById('tab-keluar').classList.toggle('active', tipe==='KELUAR');
+  document.getElementById('tab-masuk').classList.toggle('active', tipe === 'MASUK');
+  document.getElementById('tab-keluar').classList.toggle('active', tipe === 'KELUAR');
+  
   const badge = document.getElementById('scan-tipe-badge');
   badge.textContent = tipe;
-  badge.className   = 'badge '+(tipe==='MASUK'?'badge-green':'badge-red');
-  updateTransaksiUI();
+  badge.className = 'badge ' + (tipe === 'MASUK' ? 'badge-green' : 'badge-red');
+
+  document.getElementById('lokasiMasukSection').style.display = tipe === 'MASUK' ? 'block' : 'none';
+
   if (currentScanResult) {
-    renderLokasiList(currentScanResult.lokasi||[]);
-    selectedLokasiKeluar = null;
-    if (tipe==='KELUAR') document.getElementById('selectedLokasiKeluar').innerHTML='← Klik salah satu lokasi di atas untuk dipilih';
+    const btn = document.getElementById('btnTransaksi');
+    btn.textContent = tipe === 'MASUK' ? '✓ Konfirmasi Masuk' : '✓ Konfirmasi Keluar';
+    btn.className = 'btn ' + (tipe === 'MASUK' ? 'btn-success' : 'btn-danger');
   }
 }
 
-function updateTransaksiUI() {
-  const isMasuk = currentTipeTransaksi==='MASUK';
-  document.getElementById('lokasiMasukSection').style.display  = isMasuk  ? 'block':'none';
-  document.getElementById('lokasiKeluarSection').style.display = !isMasuk ? 'block':'none';
-  const btn = document.getElementById('btnTransaksi');
-  btn.textContent = isMasuk ? '✓ Konfirmasi Masuk':'✓ Konfirmasi Keluar';
-  btn.className   = 'btn '+(isMasuk?'btn-success':'btn-danger');
-}
-
 // =============================================
-// TRANSAKSI – multi-lokasi
+// TRANSAKSI
 // =============================================
 function submitTransaksi() {
-  if (!currentScanResult) { showToast('Scan atau cari produk terlebih dahulu','error'); return; }
+  if (!currentScanResult) { showToast('Scan atau cari produk terlebih dahulu', 'error'); return; }
   const jumlah = parseInt(document.getElementById('txJumlah').value);
-  if (!jumlah||jumlah<=0) { showToast('Masukkan jumlah yang valid','error'); return; }
+  if (!jumlah || jumlah <= 0) { showToast('Masukkan jumlah yang valid', 'error'); return; }
 
-  let rak, lantai, baris;
-  if (currentTipeTransaksi==='MASUK') {
-    rak=document.getElementById('txRak').value;
-    lantai=document.getElementById('txLantai').value;
-    baris=document.getElementById('txBaris').value;
-    if (!rak||!lantai||!baris) { showToast('Pilih lokasi rak, lantai, dan baris untuk barang masuk','error'); return; }
-  } else {
-    if (!selectedLokasiKeluar) { showToast('Klik lokasi di daftar penyimpanan untuk memilih sumber','error'); return; }
-    rak=selectedLokasiKeluar.rak; lantai=selectedLokasiKeluar.lantai; baris=selectedLokasiKeluar.baris;
-    if (jumlah>selectedLokasiKeluar.stok) {
-      if (!confirm(`Stok di lokasi ini: ${selectedLokasiKeluar.stok}. Jumlah keluar: ${jumlah}. Lanjutkan?`)) return;
-    }
+  const rak = document.getElementById('txRak').value;
+  const lantai = document.getElementById('txLantai').value;
+  const baris = document.getElementById('txBaris').value;
+
+  if (currentTipeTransaksi === 'MASUK' && (!rak || !lantai || !baris)) {
+    showToast('Pilih lokasi rak, lantai, dan baris untuk barang masuk', 'error');
+    return;
+  }
+  if (currentTipeTransaksi === 'KELUAR' && jumlah > currentScanResult.stok) {
+    if (!confirm(`Stok saat ini: ${currentScanResult.stok}. Jumlah keluar: ${jumlah}. Stok akan menjadi ${currentScanResult.stok - jumlah}. Lanjutkan?`)) return;
   }
 
   showLoading();
-  callAPI('catatTransaksi',{
-    barcode:currentScanResult.barcode,namaProduk:currentScanResult.nama,
-    tipe:currentTipeTransaksi,jumlah,rak,lantai,baris,
-    catatan:document.getElementById('txCatatan').value,operator:'Admin'
-  })
-    .then(result=>{
+  const data = {
+    barcode: currentScanResult.barcode,
+    namaProduk: currentScanResult.nama,
+    tipe: currentTipeTransaksi,
+    jumlah: jumlah,
+    rak: rak, lantai: lantai, baris: baris,
+    catatan: document.getElementById('txCatatan').value,
+    operator: 'Admin'
+  };
+
+  callAPI('catatTransaksi', data)
+    .then(result => {
       hideLoading();
-      if(result.success){
-        showToast(`Transaksi ${currentTipeTransaksi} berhasil!`,'success');
+      if (result.success) {
+        showToast('Transaksi berhasil dicatat!', 'success');
         playBeep();
-        ['txJumlah','txCatatan','txRak','txLantai','txBaris'].forEach(id=>{
-          document.getElementById(id).value = id==='txJumlah'?1:'';
-        });
+        // Reset form
+        document.getElementById('txJumlah').value = 1;
+        document.getElementById('txCatatan').value = '';
+        document.getElementById('txRak').value = '';
+        document.getElementById('txLantai').value = '';
+        document.getElementById('txBaris').value = '';
         document.getElementById('resultFound').classList.remove('show');
-        document.getElementById('resultEmpty').style.display='block';
-        document.getElementById('manualBarcode').value='';
-        currentScanResult=null; selectedLokasiKeluar=null;
+        document.getElementById('resultEmpty').style.display = 'block';
+        document.getElementById('manualBarcode').value = '';
+        currentScanResult = null;
         loadDashboard();
-      } else showToast('Gagal: '+result.message,'error');
-    }).catch(err=>{hideLoading();showToast('Error: '+err,'error');});
+      } else { showToast('Gagal: ' + result.message, 'error'); }
+    })
+    .catch(err => { hideLoading(); showToast('Error: ' + err, 'error'); });
 }
 
 // =============================================
@@ -2483,10 +2094,7 @@ function renderProdukTable(data) {
   }
   tbody.innerHTML = data.map(p => {
     const stokClass = p.stok <= 0 ? 'stok-warning' : p.stok <= 5 ? 'stok-low' : 'stok-ok';
-    const lokasiArr = p.lokasi || [];
-    const lokasi = lokasiArr.length === 0
-      ? '<span style="color:var(--text3)">—</span>'
-      : lokasiArr.map(l=>`<span style="display:inline-block;background:#fff7ed;border:1px solid #fed7aa;border-radius:4px;padding:1px 6px;font-size:10px;margin:1px;font-family:var(--font-mono)">R${l.rak}·L${l.lantai}·B${l.baris}(${l.jumlah})</span>`).join('');
+    const lokasi = p.rak ? `R${p.rak} L${p.lantai} B${p.baris}` : '<span style="color:var(--text3)">—</span>';
     return `
       <tr>
         <td class="barcode-cell">${p.barcode}</td>
@@ -2501,25 +2109,33 @@ function renderProdukTable(data) {
             <button class="btn btn-danger btn-sm btn-icon" onclick="hapusProdukModal('${p.id}','${p.nama.replace(/'/g,'\\\'')}')" title="Hapus">🗑️</button>
           </div>
         </td>
-      </tr>`;
+      </tr>
+    `;
   }).join('');
 }
 
 function filterProdukTable() {
   const q = document.getElementById('searchProduk').value.toLowerCase();
-  renderProdukTable(allProdukData.filter(p =>
+  const filtered = allProdukData.filter(p =>
     p.nama.toLowerCase().includes(q) ||
     p.barcode.toLowerCase().includes(q) ||
     (p.kategori && p.kategori.toLowerCase().includes(q))
-  ));
+  );
+  renderProdukTable(filtered);
 }
 
 function openModalTambahProduk() {
   document.getElementById('modalProdukTitle').textContent = 'TAMBAH PRODUK';
-  ['editProdukId','produkBarcode','produkNama','produkKategori','produkDeskripsi',
-   'produkRak','produkLantai','produkBaris'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('editProdukId').value = '';
+  document.getElementById('produkBarcode').value = '';
+  document.getElementById('produkNama').value = '';
+  document.getElementById('produkKategori').value = '';
   document.getElementById('produkSatuan').value = 'pcs';
   document.getElementById('produkStok').value = '0';
+  document.getElementById('produkDeskripsi').value = '';
+  document.getElementById('produkRak').value = '';
+  document.getElementById('produkLantai').value = '';
+  document.getElementById('produkBaris').value = '';
   openModal('modalProduk');
 }
 
@@ -2527,51 +2143,59 @@ function editProdukById(id) {
   const p = allProdukData.find(x => x.id === id);
   if (!p) return;
   document.getElementById('modalProdukTitle').textContent = 'EDIT PRODUK';
-  document.getElementById('editProdukId').value   = p.id;
-  document.getElementById('produkBarcode').value  = p.barcode;
-  document.getElementById('produkNama').value     = p.nama;
+  document.getElementById('editProdukId').value = p.id;
+  document.getElementById('produkBarcode').value = p.barcode;
+  document.getElementById('produkNama').value = p.nama;
   document.getElementById('produkKategori').value = p.kategori || '';
-  document.getElementById('produkSatuan').value   = p.satuan || 'pcs';
-  document.getElementById('produkStok').value     = p.stok || 0;
-  document.getElementById('produkDeskripsi').value= p.deskripsi || '';
-  document.getElementById('produkRak').value      = p.rak || '';
-  document.getElementById('produkLantai').value   = p.lantai || '';
-  document.getElementById('produkBaris').value    = p.baris || '';
+  document.getElementById('produkSatuan').value = p.satuan || 'pcs';
+  document.getElementById('produkStok').value = p.stok || 0;
+  document.getElementById('produkDeskripsi').value = p.deskripsi || '';
+  document.getElementById('produkRak').value = p.rak || '';
+  document.getElementById('produkLantai').value = p.lantai || '';
+  document.getElementById('produkBaris').value = p.baris || '';
   openModal('modalProduk');
 }
 
 function editProdukFromScan() {
   if (!currentScanResult) return;
+  const p = currentScanResult;
+  // Redirect ke produk page dan edit
   showPage('produk', null);
   setTimeout(() => {
-    const found = allProdukData.find(x => x.barcode === currentScanResult.barcode);
+    const found = allProdukData.find(x => x.barcode === p.barcode);
     if (found) editProdukById(found.id);
   }, 500);
 }
 
 function saveProduk() {
-  const barcode = String(document.getElementById('produkBarcode').value).trim().replace(/\s+/g,'');
-  const nama    = document.getElementById('produkNama').value.trim();
+  const barcode = document.getElementById('produkBarcode').value.trim();
+  const nama = document.getElementById('produkNama').value.trim();
+  
   if (!barcode || !nama) { showToast('Barcode dan nama produk wajib diisi!', 'error'); return; }
 
-  const id   = document.getElementById('editProdukId').value;
+  const id = document.getElementById('editProdukId').value;
   const data = {
     id, barcode, nama,
-    kategori:   document.getElementById('produkKategori').value,
-    satuan:     document.getElementById('produkSatuan').value,
-    stok:       parseInt(document.getElementById('produkStok').value) || 0,
-    deskripsi:  document.getElementById('produkDeskripsi').value,
-    rak:        document.getElementById('produkRak').value,
-    lantai:     document.getElementById('produkLantai').value,
-    baris:      document.getElementById('produkBaris').value
+    kategori: document.getElementById('produkKategori').value,
+    satuan: document.getElementById('produkSatuan').value,
+    stok: parseInt(document.getElementById('produkStok').value) || 0,
+    deskripsi: document.getElementById('produkDeskripsi').value,
+    rak: document.getElementById('produkRak').value,
+    lantai: document.getElementById('produkLantai').value,
+    baris: document.getElementById('produkBaris').value
   };
 
   showLoading();
-  callAPI(id ? 'editProduk' : 'tambahProduk', data)
+  const fn = id ? 'editProduk' : 'tambahProduk'; // Menentukan aksi
+  
+  callAPI(fn, data)
     .then(result => {
       hideLoading();
-      if (result.success) { showToast(result.message, 'success'); closeModal('modalProduk'); loadProduk(); }
-      else { showToast('Gagal: ' + result.message, 'error'); }
+      if (result.success) {
+        showToast(result.message, 'success');
+        closeModal('modalProduk');
+        loadProduk();
+      } else { showToast('Gagal: ' + result.message, 'error'); }
     })
     .catch(err => { hideLoading(); showToast('Error: ' + err, 'error'); });
 }
@@ -2586,9 +2210,12 @@ function konfirmasiHapus() {
   showLoading();
   callAPI('hapusProduk', deleteTargetId)
     .then(result => {
-      hideLoading(); closeModal('modalHapus');
-      if (result.success) { showToast('Produk berhasil dihapus', 'success'); loadProduk(); }
-      else { showToast('Gagal: ' + result.message, 'error'); }
+      hideLoading();
+      closeModal('modalHapus');
+      if (result.success) {
+        showToast('Produk berhasil dihapus', 'success');
+        loadProduk();
+      } else { showToast('Gagal: ' + result.message, 'error'); }
     })
     .catch(err => { hideLoading(); showToast('Error: ' + err, 'error'); });
 }
@@ -2598,10 +2225,11 @@ function konfirmasiHapus() {
 // =============================================
 function loadRiwayat(tipe) {
   showLoading();
-  callAPI('getTransaksi', { tipe })
+  callAPI('getTransaksi', { tipe: tipe })
     .then(result => {
       hideLoading();
-      renderRiwayatTable(tipe === 'MASUK' ? 'masuk-tbody' : 'keluar-tbody', result.data || []);
+      const tbodyId = tipe === 'MASUK' ? 'masuk-tbody' : 'keluar-tbody';
+      renderRiwayatTable(tbodyId, result.data || []);
     })
     .catch(err => { hideLoading(); showToast('Error: ' + err, 'error'); });
 }
@@ -2609,12 +2237,12 @@ function loadRiwayat(tipe) {
 function loadAllRiwayat() {
   const tipe = document.getElementById('filterTipe').value;
   showLoading();
-  callAPI('getTransaksi', tipe ? { tipe } : {})
+  callAPI('getTransaksi', tipe ? { tipe: tipe } : {})
     .then(result => {
       hideLoading();
-      const data  = result.data || [];
+      const data = result.data || [];
       const tbody = document.getElementById('riwayat-tbody');
-      if (!data.length) {
+      if (data.length === 0) {
         tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text3)">Belum ada transaksi</td></tr>';
         return;
       }
@@ -2628,7 +2256,8 @@ function loadAllRiwayat() {
           <td style="font-size:12px">${t.rak?'R'+t.rak+' L'+t.lantai+' B'+t.baris:'—'}</td>
           <td style="color:var(--text3)">${t.operator}</td>
           <td style="color:var(--text3);font-size:12px">${t.catatan||''}</td>
-        </tr>`).join('');
+        </tr>
+      `).join('');
     })
     .catch(err => { hideLoading(); showToast('Error: ' + err, 'error'); });
 }
@@ -2648,7 +2277,8 @@ function renderRiwayatTable(tbodyId, data) {
       <td style="font-size:12px">${t.rak?'R'+t.rak+' L'+t.lantai+' B'+t.baris:'—'}</td>
       <td style="color:var(--text3);font-size:12px">${t.catatan||''}</td>
       <td style="color:var(--text3)">${t.operator}</td>
-    </tr>`).join('');
+    </tr>
+  `).join('');
 }
 
 // =============================================
@@ -2731,39 +2361,69 @@ function closeLokasiDetail() {
 }
 
 // =============================================
-// MINI SCANNER (untuk Modal) – juga pakai voting
+// MINI SCANNER (untuk Modal)
 // =============================================
-let miniScanBuffer = [];
-let miniScanLocked = false;
-
 function scanForModal() {
   openModal('modalMiniScan');
   setTimeout(startMiniScanner, 300);
 }
 
+// function startMiniScanner() {
+//   const viewport = document.getElementById('mini-scanner-viewport');
+//   document.getElementById('miniScanIdle').style.display = 'none';
+
+//   Quagga.init({
+//     inputStream: {
+//       name: "Mini",
+//       type: "LiveStream",
+//       target: viewport,
+//       constraints: { facingMode: "environment" }
+//     },
+//     decoder: {
+//       readers: ["code_128_reader","ean_reader","ean_8_reader","code_39_reader","upc_reader"]
+//     },
+//     locate: true
+//   }, function(err) {
+//     if (err) {
+//       document.getElementById('miniScanIdle').style.display = 'block';
+//       document.getElementById('miniScanIdle').querySelector('p').textContent = 'Gagal akses kamera';
+//       return;
+//     }
+//     Quagga.start();
+//     miniScannerRunning = true;
+//   });
+
+//   Quagga.onDetected(function(result) {
+//     if (result && result.codeResult && result.codeResult.code) {
+//       showScanIndicator('miniScanIndicator');
+//       playBeep();
+//       const code = result.codeResult.code;
+//       closeMiniScanner();
+//       document.getElementById('produkBarcode').value = code;
+//     }
+//   });
+// }
+
+
 function startMiniScanner() {
-  miniScanBuffer = [];
-  miniScanLocked = false;
+  const viewport = document.getElementById('mini-scanner-viewport');
   document.getElementById('miniScanIdle').style.display = 'none';
+
+  let miniBuffer = {};
 
   Quagga.init({
     inputStream: {
-      name: 'Mini', type: 'LiveStream',
-      target: document.getElementById('mini-scanner-viewport'),
-      constraints: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+      name: "Mini",
+      type: "LiveStream",
+      target: viewport,
+      constraints: { facingMode: "environment", width: { ideal: 640 }, height: { ideal: 480 } }
     },
-    locator: { patchSize: 'medium', halfSample: true },
-    numOfWorkers: 2,
-    frequency: 15,
     decoder: {
-      readers: [
-        { format: 'ean_reader',      config: {} },
-        { format: 'ean_8_reader',    config: {} },
-        { format: 'upc_reader',      config: {} },
-        { format: 'code_128_reader', config: {} },
-        { format: 'code_39_reader',  config: {} }
-      ]
+      readers: ["ean_reader", "code_128_reader", "code_39_reader"]
     },
+    locator: { patchSize: "medium", halfSample: true },
+    numOfWorkers: 1,
+    frequency: 10,
     locate: true
   }, function(err) {
     if (err) {
@@ -2776,35 +2436,38 @@ function startMiniScanner() {
   });
 
   Quagga.onDetected(function(result) {
-    if (miniScanLocked || !result || !result.codeResult) return;
-    const raw    = result.codeResult.code;
-    const format = result.codeResult.format;
-    const code   = normalizeBarcode(raw, format);
-    if (!code || code.length < 4) return;
+    if (!result || !result.codeResult || !result.codeResult.code) return;
 
-    miniScanBuffer.push(code);
-    if (miniScanBuffer.length > SCAN_BUFFER_SIZE) miniScanBuffer.shift();
+    const code = result.codeResult.code;
+    if (!code || code.length < 6) return;
 
-    // Voting
-    const freq = {};
-    miniScanBuffer.forEach(c => { freq[c] = (freq[c] || 0) + 1; });
-    const winner = Object.entries(freq).sort((a,b) => b[1]-a[1])[0];
-    if (winner && winner[1] >= SCAN_VOTES_NEEDED) {
-      miniScanLocked = true;
-      showScanIndicator('miniScanIndicator');
-      playBeep();
-      const confirmed = winner[0];
-      closeMiniScanner();
-      document.getElementById('produkBarcode').value = confirmed;
+    // Validasi error rate
+    const errors = result.codeResult.decodedCodes
+      .filter(x => x.error !== undefined).map(x => x.error);
+    if (errors.length > 0) {
+      const avgError = errors.reduce((a, b) => a + b, 0) / errors.length;
+      if (avgError > 0.15) return;
     }
+
+    // Konsensus sederhana (2x cukup untuk mini scanner)
+    const now = Date.now();
+    if (!miniBuffer[code]) miniBuffer[code] = { count: 0, firstSeen: now };
+    if (now - miniBuffer[code].firstSeen > 1500) miniBuffer[code] = { count: 0, firstSeen: now };
+    miniBuffer[code].count++;
+    if (miniBuffer[code].count < 2) return;
+
+    miniBuffer = {};
+    const cleanCode = code.trim().replace(/\s+/g, '');
+    showScanIndicator('miniScanIndicator');
+    playBeep();
+    closeMiniScanner();
+    document.getElementById('produkBarcode').value = cleanCode;
   });
 }
 
 function closeMiniScanner() {
-  miniScanBuffer = [];
-  miniScanLocked = false;
   if (miniScannerRunning) {
-    try { Quagga.stop(); } catch(e) {}
+    Quagga.stop();
     miniScannerRunning = false;
   }
   document.getElementById('mini-scanner-viewport').innerHTML = '';
@@ -2813,7 +2476,7 @@ function closeMiniScanner() {
 }
 
 function useMiniBarcode() {
-  const val = String(document.getElementById('miniManualBarcode').value).trim().replace(/\s+/g,'');
+  const val = document.getElementById('miniManualBarcode').value.trim();
   if (!val) { showToast('Masukkan kode barcode', 'error'); return; }
   closeMiniScanner();
   document.getElementById('produkBarcode').value = val;
