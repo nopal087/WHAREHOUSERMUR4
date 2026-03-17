@@ -118,7 +118,8 @@
           elements.map(async (el) => {
             const file = el.getAttribute("data-include");
             try {
-              const res = await fetch(file);
+              // [PERBAIKAN] Tambahkan '?v=' + getTime() agar browser selalu mengambil file HTML TERBARU (Anti-Cache)
+              const res = await fetch(file + "?v=" + new Date().getTime());
               const html = await res.text();
               const temp = document.createElement("template");
               temp.innerHTML = html;
@@ -132,7 +133,7 @@
 
       document.addEventListener("DOMContentLoaded", async function () {
         await processIncludes();
-        initApp(); // dari js/app.js — dipanggil setelah semua HTML tersedia
+        initApp();
       });
     </script>
   </body>

@@ -815,10 +815,39 @@ function buildKategoriFilter(data) {
   if (currentVal) select.value = currentVal;
 }
 
+// function renderProdukTable(data) {
+//   const tbody = document.getElementById('produk-tbody');
+//   if (!data || data.length === 0) {
+//     tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📦</div><p>Belum ada produk. Tambahkan produk pertama!</p></div></td></tr>';
+//     return;
+//   }
+//   tbody.innerHTML = data.map(p => {
+//     const stokClass = p.stok <= 0 ? 'stok-warning' : p.stok <= 5 ? 'stok-low' : 'stok-ok';
+//     const lokasi = p.rak ? `R${p.rak} L${p.lantai} B${p.baris}` : '<span style="color:var(--text3)">—</span>';
+//     return `
+//       <tr>
+//         <td class="barcode-cell">${p.barcode}</td>
+//         <td><strong>${p.nama}</strong><div style="font-size:11px;color:var(--text3)">${p.deskripsi||''}</div></td>
+//         <td><span class="badge badge-blue">${p.kategori||'—'}</span></td>
+//         <td><span class="stok-badge ${stokClass}">${p.stok}</span></td>
+//         <td style="color:var(--text3)">${p.satuan}</td>
+//         <td style="font-size:12px;font-family:var(--font-mono)">${lokasi}</td>
+//         <td>
+//           <div class="td-actions">
+//             <button class="btn btn-outline btn-sm btn-icon" onclick="editProdukById('${p.id}')" title="Edit">✏️</button>
+//             <button class="btn btn-danger btn-sm btn-icon" onclick="hapusProdukModal('${p.id}','${p.nama.replace(/'/g,'\\\'')}')" title="Hapus">🗑️</button>
+//           </div>
+//         </td>
+//       </tr>
+//     `;
+//   }).join('');
+// }
+
 function renderProdukTable(data) {
   const tbody = document.getElementById('produk-tbody');
   if (!data || data.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📦</div><p>Belum ada produk. Tambahkan produk pertama!</p></div></td></tr>';
+    // Colspan diubah menjadi 8
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📦</div><p>Belum ada produk. Tambahkan produk pertama!</p></div></td></tr>';
     return;
   }
   tbody.innerHTML = data.map(p => {
@@ -832,6 +861,9 @@ function renderProdukTable(data) {
         <td><span class="stok-badge ${stokClass}">${p.stok}</span></td>
         <td style="color:var(--text3)">${p.satuan}</td>
         <td style="font-size:12px;font-family:var(--font-mono)">${lokasi}</td>
+        
+        <td style="font-size:13px; color:var(--text3); font-weight:600;">${p.operator || '—'}</td>
+        
         <td>
           <div class="td-actions">
             <button class="btn btn-outline btn-sm btn-icon" onclick="editProdukById('${p.id}')" title="Edit">✏️</button>
