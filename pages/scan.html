@@ -6,19 +6,20 @@
     </div>
   </div>
 
-  <!-- Tipe Transaksi Tabs -->
-  <div class="tipe-tabs">
-    <button class="tipe-tab masuk active" id="tab-masuk" onclick="setTipeTransaksi('MASUK')">
-      📥 BARANG MASUK
+  <div class="tipe-tabs" style="display:flex; gap:8px;">
+    <button style="flex:1" class="tipe-tab masuk active" id="tab-masuk" onclick="setTipeTransaksi('MASUK')">
+      📥 MASUK
     </button>
-    <button class="tipe-tab keluar" id="tab-keluar" onclick="setTipeTransaksi('KELUAR')">
-      📤 BARANG KELUAR
+    <button style="flex:1" class="tipe-tab keluar" id="tab-keluar" onclick="setTipeTransaksi('KELUAR')">
+      📤 KELUAR
+    </button>
+    <button style="flex:1; background:var(--bg3); border:1px solid var(--border); border-radius:8px; font-weight:700; color:var(--text2); font-family:var(--font-display); font-size:13px;" class="tipe-tab tambah" id="tab-tambah" onclick="setTipeTransaksi('TAMBAH')">
+      ➕ TAMBAH DATA
     </button>
   </div>
 
   <div class="scan-layout">
 
-    <!-- ===== KOLOM KIRI: SCANNER ===== -->
     <div>
       <div class="card" style="margin-bottom:16px">
         <div class="card-header">
@@ -36,7 +37,7 @@
             <div class="scan-idle" id="scanIdle">
               <span class="scan-idle-icon">📷</span>
               <p>Tekan <strong>Mulai</strong> untuk mengaktifkan kamera</p>
-              <p style="font-size:12px;margin-top:6px;opacity:0.7">Mendukung barcode EAN-13, Code 128, Code 39</p>
+              <p style="font-size:12px;margin-top:6px;opacity:0.7">Mendukung barcode ITF-14, EAN-13, Code 128</p>
             </div>
           </div>
         </div>
@@ -62,7 +63,6 @@
       </div>
     </div>
 
-    <!-- ===== KOLOM KANAN: HASIL ===== -->
     <div>
       <div class="card result-panel">
         <div class="card-header">
@@ -71,14 +71,12 @@
         </div>
         <div class="card-body" style="padding:0">
 
-          <!-- EMPTY STATE -->
           <div class="result-empty" id="resultEmpty" style="padding:50px 20px;text-align:center;color:var(--text3)">
             <span style="font-size:52px;display:block;margin-bottom:12px;opacity:0.25">🔍</span>
             <p style="font-size:14px;margin-bottom:6px">Arahkan kamera ke barcode</p>
             <p style="font-size:12px;opacity:0.7">atau ketik kode barcode secara manual</p>
           </div>
 
-          <!-- NOT FOUND STATE -->
           <div id="resultNotFound" style="display:none">
             <div style="background:var(--red-dim);border-bottom:1px solid rgba(220,38,38,0.15);padding:20px 24px;display:flex;align-items:center;gap:14px">
               <div style="width:44px;height:44px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">❓</div>
@@ -137,10 +135,8 @@
             </div>
           </div>
 
-          <!-- FOUND STATE -->
           <div class="result-found" id="resultFound">
 
-            <!-- Header produk -->
             <div style="padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
               <div style="min-width:0;flex:1">
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
@@ -156,7 +152,6 @@
               <button class="btn btn-outline btn-sm" onclick="editProdukFromScan()" style="flex-shrink:0" title="Edit produk">✏️</button>
             </div>
 
-            <!-- Stok & Satuan -->
             <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border)">
               <div style="padding:16px 24px;border-right:1px solid var(--border)">
                 <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);font-family:var(--font-display);font-weight:700;margin-bottom:4px">Stok Total</div>
@@ -168,7 +163,6 @@
               </div>
             </div>
 
-            <!-- Tabel Lokasi Multi-Rak -->
             <div style="border-bottom:1px solid var(--border)">
               <div style="padding:12px 24px 8px;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);font-family:var(--font-display);font-weight:700">
                 📍 Lokasi Penyimpanan
@@ -176,8 +170,19 @@
               <div id="resLokasiContainer" style="padding:0 0 4px"></div>
             </div>
 
-            <!-- Form Transaksi -->
-            <div style="padding:20px 24px">
+            <div id="sudahAdaSection" style="display:none; padding:20px 24px; text-align:center;">
+              <div style="background:var(--blue-dim); padding:20px; border-radius:8px; border:1px solid rgba(59,130,246,0.2);">
+                <span style="font-size:30px; display:block; margin-bottom:10px;">✅</span>
+                <strong style="color:var(--blue); font-size:16px;">Produk sudah terdaftar di sistem</strong>
+                <p style="font-size:13px; color:var(--text2); margin-top:6px;">Data master untuk produk ini sudah ada. Anda bisa mengedit detail produk jika diperlukan.</p>
+                <div style="display:flex; gap:10px; margin-top:16px;">
+                  <button class="btn btn-primary" style="flex:1" onclick="editProdukFromScan()">✏️ Edit Data</button>
+                  <button class="btn btn-outline" onclick="document.getElementById('resultFound').classList.remove('show');document.getElementById('resultEmpty').style.display='block';document.getElementById('manualBarcode').value='';currentScanResult=null;">✕ Batal</button>
+                </div>
+              </div>
+            </div>
+
+            <div id="formTransaksiSection" style="padding:20px 24px">
               <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);font-family:var(--font-display);font-weight:700;margin-bottom:14px">
                 ⚡ Form Transaksi
               </div>
@@ -239,15 +244,13 @@
                   ✓ Konfirmasi Transaksi
                 </button>
                 <button class="btn btn-outline" onclick="document.getElementById('resultFound').classList.remove('show');document.getElementById('resultEmpty').style.display='block';document.getElementById('manualBarcode').value='';currentScanResult=null;">
-                  ✕ Reset
+                  ✕ Batal
                 </button>
               </div>
             </div>
 
           </div>
-          <!-- END FOUND STATE -->
-
-        </div>
+          </div>
       </div>
     </div>
 

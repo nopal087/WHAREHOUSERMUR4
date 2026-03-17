@@ -376,11 +376,26 @@ function showResultFound(produk, lokasiProduk = []) {
 
   // Update button teks & warna
   const btn = document.getElementById('btnTransaksi');
-  btn.textContent = currentTipeTransaksi === 'MASUK' ? '✓ Konfirmasi Masuk' : '✓ Konfirmasi Keluar';
-  btn.className = 'btn ' + (currentTipeTransaksi === 'MASUK' ? 'btn-success' : 'btn-danger');
+  if (btn) {
+    btn.textContent = currentTipeTransaksi === 'MASUK' ? '✓ Konfirmasi Masuk' : '✓ Konfirmasi Keluar';
+    btn.className = 'btn ' + (currentTipeTransaksi === 'MASUK' ? 'btn-success' : 'btn-danger');
+  }
 
-  // Show/hide lokasi section
-  document.getElementById('lokasiMasukSection').style.display = currentTipeTransaksi === 'MASUK' ? 'block' : 'none';
+  // Tampilkan/sembunyikan area berdasarkan mode aktif
+  const lokasiMasuk = document.getElementById('lokasiMasukSection');
+  if (lokasiMasuk) lokasiMasuk.style.display = currentTipeTransaksi === 'MASUK' ? 'block' : 'none';
+
+  const formTx = document.getElementById('formTransaksiSection');
+  const sudahAda = document.getElementById('sudahAdaSection');
+  if (formTx && sudahAda) {
+    if (currentTipeTransaksi === 'TAMBAH') {
+      formTx.style.display = 'none';
+      sudahAda.style.display = 'block';
+    } else {
+      formTx.style.display = 'block';
+      sudahAda.style.display = 'none';
+    }
+  }
 }
 
 function showResultNotFound(barcode) {
@@ -426,21 +441,53 @@ function quickAddProduk() {
 // =============================================
 // TIPE TRANSAKSI
 // =============================================
+// =============================================
+// TIPE TRANSAKSI (Diperbarui)
+// =============================================
 function setTipeTransaksi(tipe) {
   currentTipeTransaksi = tipe;
+  
+  // Update class active pada tab
   document.getElementById('tab-masuk').classList.toggle('active', tipe === 'MASUK');
   document.getElementById('tab-keluar').classList.toggle('active', tipe === 'KELUAR');
-  
+  const tabTambah = document.getElementById('tab-tambah');
+  if (tabTambah) {
+    tabTambah.style.backgroundColor = tipe === 'TAMBAH' ? 'var(--blue)' : 'var(--bg3)';
+    tabTambah.style.color = tipe === 'TAMBAH' ? '#fff' : 'var(--text2)';
+  }
+
+  // Update Badge
   const badge = document.getElementById('scan-tipe-badge');
-  badge.textContent = tipe;
-  badge.className = 'badge ' + (tipe === 'MASUK' ? 'badge-green' : 'badge-red');
+  badge.textContent = tipe === 'TAMBAH' ? 'TAMBAH DATA' : tipe;
+  
+  if (tipe === 'MASUK') badge.className = 'badge badge-green';
+  else if (tipe === 'KELUAR') badge.className = 'badge badge-red';
+  else badge.className = 'badge badge-blue'; // Untuk Tambah Data
 
-  document.getElementById('lokasiMasukSection').style.display = tipe === 'MASUK' ? 'block' : 'none';
+  // Tampilkan/sembunyikan lokasi (hanya untuk barang masuk)
+  const lokasiMasuk = document.getElementById('lokasiMasukSection');
+  if (lokasiMasuk) lokasiMasuk.style.display = tipe === 'MASUK' ? 'block' : 'none';
 
+  // Toggle antara Form Transaksi vs Info Barang Sudah Ada
+  const formTx = document.getElementById('formTransaksiSection');
+  const sudahAda = document.getElementById('sudahAdaSection');
+  if (formTx && sudahAda) {
+    if (tipe === 'TAMBAH') {
+      formTx.style.display = 'none';
+      sudahAda.style.display = 'block';
+    } else {
+      formTx.style.display = 'block';
+      sudahAda.style.display = 'none';
+    }
+  }
+
+  // Update tombol transaksi jika produk sedang terpilih
   if (currentScanResult) {
     const btn = document.getElementById('btnTransaksi');
-    btn.textContent = tipe === 'MASUK' ? '✓ Konfirmasi Masuk' : '✓ Konfirmasi Keluar';
-    btn.className = 'btn ' + (tipe === 'MASUK' ? 'btn-success' : 'btn-danger');
+    if (btn) {
+      btn.textContent = tipe === 'MASUK' ? '✓ Konfirmasi Masuk' : '✓ Konfirmasi Keluar';
+      btn.className = 'btn ' + (tipe === 'MASUK' ? 'btn-success' : 'btn-danger');
+    }
   }
 }
 
