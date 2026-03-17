@@ -9,6 +9,8 @@ let currentScanResult = null;
 let allProdukData = [];
 let deleteTargetId = '';
 let lokasiData = [];
+let riwayatMasukData = [];
+let riwayatKeluarData = [];
 
 // Variabel global untuk Html5Qrcode
 let html5QrCode = null;
@@ -552,6 +554,9 @@ function quickAddProduk() {
 // =============================================
 // TIPE TRANSAKSI
 // =============================================
+// =============================================
+// TIPE TRANSAKSI
+// =============================================
 function setTipeTransaksi(tipe) {
   currentTipeTransaksi = tipe;
   
@@ -647,8 +652,6 @@ function setTipeTransaksi(tipe) {
 //     })
 //     .catch(err => { hideLoading(); showToast('Error: ' + err, 'error'); });
 // }
-
-
 
 function submitTransaksi() {
   if (!currentScanResult) { showToast('Scan atau cari produk terlebih dahulu', 'error'); return; }
@@ -910,15 +913,82 @@ function konfirmasiHapus() {
 // =============================================
 // RIWAYAT
 // =============================================
+// function loadRiwayat(tipe) {
+//   showLoading();
+//   callAPI('getTransaksi', { tipe: tipe })
+//     .then(result => {
+//       hideLoading();
+//       const tbodyId = tipe === 'MASUK' ? 'masuk-tbody' : 'keluar-tbody';
+//       renderRiwayatTable(tbodyId, result.data || []);
+//     })
+//     .catch(err => { hideLoading(); showToast('Error: ' + err, 'error'); });
+// }
+
+// =============================================
+// RIWAYAT
+// =============================================
+// =============================================
+// RIWAYAT
+// =============================================
 function loadRiwayat(tipe) {
   showLoading();
   callAPI('getTransaksi', { tipe: tipe })
     .then(result => {
       hideLoading();
       const tbodyId = tipe === 'MASUK' ? 'masuk-tbody' : 'keluar-tbody';
-      renderRiwayatTable(tbodyId, result.data || []);
+      const dataTransaksi = result.data || [];
+      
+      // Simpan data ke memori sesuai tipenya agar bisa difilter
+      if (tipe === 'MASUK') {
+        riwayatMasukData = dataTransaksi;
+        const searchInput = document.getElementById('searchMasuk');
+        if (searchInput) searchInput.value = '';
+      } else if (tipe === 'KELUAR') {
+        riwayatKeluarData = dataTransaksi;
+        const searchInput = document.getElementById('searchKeluar');
+        if (searchInput) searchInput.value = '';
+      }
+
+      renderRiwayatTable(tbodyId, dataTransaksi);
     })
     .catch(err => { hideLoading(); showToast('Error: ' + err, 'error'); });
+}
+
+function filterRiwayatMasuk() {
+  const searchInput = document.getElementById('searchMasuk');
+  if (!searchInput) return;
+  const keyword = searchInput.value.toLowerCase().trim();
+
+  const filteredData = riwayatMasukData.filter(t => {
+    return (
+      (t.namaProduk && t.namaProduk.toLowerCase().includes(keyword)) ||
+      (t.barcode && String(t.barcode).toLowerCase().includes(keyword)) ||
+      (t.timestamp && String(t.timestamp).toLowerCase().includes(keyword)) ||
+      (t.jumlah && String(t.jumlah).toLowerCase().includes(keyword)) ||
+      (t.catatan && t.catatan.toLowerCase().includes(keyword)) ||
+      (t.operator && t.operator.toLowerCase().includes(keyword))
+    );
+  });
+  renderRiwayatTable('masuk-tbody', filteredData);
+}
+
+// [FUNGSI BARU] Untuk filter Barang Keluar
+function filterRiwayatKeluar() {
+  const searchInput = document.getElementById('searchKeluar');
+  if (!searchInput) return;
+  const keyword = searchInput.value.toLowerCase().trim();
+
+  const filteredData = riwayatKeluarData.filter(t => {
+    return (
+      (t.namaProduk && t.namaProduk.toLowerCase().includes(keyword)) ||
+      (t.barcode && String(t.barcode).toLowerCase().includes(keyword)) ||
+      (t.timestamp && String(t.timestamp).toLowerCase().includes(keyword)) ||
+      (t.jumlah && String(t.jumlah).toLowerCase().includes(keyword)) ||
+      (t.catatan && t.catatan.toLowerCase().includes(keyword)) ||
+      (t.operator && t.operator.toLowerCase().includes(keyword))
+    );
+  });
+  renderRiwayatTable('keluar-tbody', filteredData);
 }
 
 function loadAllRiwayat() {

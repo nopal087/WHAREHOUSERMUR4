@@ -9,9 +9,12 @@
     </button>
   </div>
   <div class="card">
-    <div class="card-header">
+    <div class="card-header" style="flex-wrap: wrap; gap: 10px;">
       <div class="card-title">Riwayat Barang Keluar</div>
-      <button class="btn btn-outline btn-sm" onclick="loadRiwayat('KELUAR')">↻ Refresh</button>
+      <div style="display:flex; gap:8px; flex: 1; justify-content: flex-end; align-items: center;">
+        <input type="text" id="searchKeluar" class="form-control" placeholder="Cari nama, tanggal, jumlah..." style="max-width: 250px; font-size: 13px;" onkeyup="filterRiwayatKeluar()">
+        <button class="btn btn-outline btn-sm" onclick="loadRiwayat('KELUAR')">↻ Refresh</button>
+      </div>
     </div>
     <div class="table-wrap">
       <table>
