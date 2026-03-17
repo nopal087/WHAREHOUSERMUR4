@@ -289,6 +289,100 @@ function processBarcode(barcode) {
     });
 }
 
+// function showResultFound(produk, lokasiProduk = []) {
+//   currentScanResult = produk;
+
+//   document.getElementById('resultEmpty').style.display = 'none';
+//   document.getElementById('resultNotFound').style.display = 'none';
+//   document.getElementById('resultFound').classList.add('show');
+
+//   // Info dasar
+//   document.getElementById('resNama').textContent = produk.nama;
+//   document.getElementById('resBarcode').textContent = produk.barcode;
+//   document.getElementById('resKategori').textContent = produk.kategori || 'Umum';
+//   document.getElementById('resSatuan').textContent = produk.satuan || 'pcs';
+//   document.getElementById('resDeskripsi').textContent = produk.deskripsi || '—';
+
+//   // Stok dengan indikator warna — hitung dari total semua lokasi jika ada
+//   const totalStok = lokasiProduk.length > 0
+//     ? lokasiProduk.reduce((sum, l) => sum + (parseInt(l.jumlah) || 0), 0)
+//     : produk.stok;
+
+//   const stokEl = document.getElementById('resStok');
+//   stokEl.textContent = totalStok;
+//   stokEl.className = 'meta-value ' + (totalStok <= 0 ? 'stok-warning' : totalStok <= 5 ? 'stok-low' : 'stok-ok');
+
+//   // Badge status stok
+//   const stokBadgeEl = document.getElementById('resStokBadge');
+//   if (totalStok <= 0) {
+//     stokBadgeEl.textContent = 'HABIS';
+//     stokBadgeEl.className = 'badge badge-red';
+//   } else if (totalStok <= 5) {
+//     stokBadgeEl.textContent = 'STOK RENDAH';
+//     stokBadgeEl.className = 'badge badge-yellow';
+//   } else {
+//     stokBadgeEl.textContent = 'TERSEDIA';
+//     stokBadgeEl.className = 'badge badge-green';
+//   }
+
+//   // Render tabel multi-lokasi
+//   const lokasiContainer = document.getElementById('resLokasiContainer');
+//   if (lokasiProduk.length === 0) {
+//     lokasiContainer.innerHTML = `
+//       <div style="text-align:center;padding:14px 0;color:var(--text3);font-size:13px">
+//         <span style="font-size:28px;display:block;margin-bottom:6px;opacity:0.4">📍</span>
+//         Belum ada data lokasi rak
+//       </div>`;
+//   } else {
+//     lokasiContainer.innerHTML = `
+//       <table style="width:100%;border-collapse:collapse;font-size:13px">
+//         <thead>
+//           <tr style="background:#eef0f6">
+//             <th style="padding:8px 10px;text-align:left;font-size:10px;letter-spacing:1.5px;color:var(--text2);font-family:var(--font-display);font-weight:700;text-transform:uppercase">Rak</th>
+//             <th style="padding:8px 10px;text-align:left;font-size:10px;letter-spacing:1.5px;color:var(--text2);font-family:var(--font-display);font-weight:700;text-transform:uppercase">Lantai</th>
+//             <th style="padding:8px 10px;text-align:left;font-size:10px;letter-spacing:1.5px;color:var(--text2);font-family:var(--font-display);font-weight:700;text-transform:uppercase">Baris</th>
+//             <th style="padding:8px 10px;text-align:right;font-size:10px;letter-spacing:1.5px;color:var(--text2);font-family:var(--font-display);font-weight:700;text-transform:uppercase">Jumlah</th>
+//             <th style="padding:8px 10px;text-align:left;font-size:10px;letter-spacing:1.5px;color:var(--text2);font-family:var(--font-display);font-weight:700;text-transform:uppercase">Update</th>
+//           </tr>
+//         </thead>
+//         <tbody>
+//           ${lokasiProduk.map((l, i) => `
+//             <tr style="border-top:1px solid var(--border);${i === 0 ? 'background:rgba(234,108,0,0.04)' : ''}">
+//               <td style="padding:8px 10px"><span style="background:var(--accent);color:#fff;border-radius:5px;padding:2px 8px;font-family:var(--font-display);font-weight:700;font-size:13px">R${l.rak}</span></td>
+//               <td style="padding:8px 10px;font-weight:600">Lantai ${l.lantai}</td>
+//               <td style="padding:8px 10px;font-weight:600">Baris ${l.baris}</td>
+//               <td style="padding:8px 10px;text-align:right;font-family:var(--font-mono);font-weight:700;color:var(--accent)">${l.jumlah}</td>
+//               <td style="padding:8px 10px;font-size:11px;color:var(--text3)">${l.lastUpdated || '—'}</td>
+//             </tr>
+//           `).join('')}
+//         </tbody>
+//         ${lokasiProduk.length > 1 ? `
+//         <tfoot>
+//           <tr style="border-top:2px solid var(--border);background:#f7f8fc">
+//             <td colspan="3" style="padding:8px 10px;font-size:11px;color:var(--text3);font-family:var(--font-display);font-weight:700;letter-spacing:0.5px">${lokasiProduk.length} LOKASI TERDAFTAR</td>
+//             <td style="padding:8px 10px;text-align:right;font-family:var(--font-mono);font-weight:700">${lokasiProduk.reduce((sum, l) => sum + (parseInt(l.jumlah) || 0), 0)}</td>
+//             <td></td>
+//           </tr>
+//         </tfoot>` : ''}
+//       </table>`;
+//   }
+
+//   // Pre-fill lokasi dari data produk (lokasi utama)
+//   if (produk.rak) {
+//     document.getElementById('txRak').value = produk.rak;
+//     document.getElementById('txLantai').value = produk.lantai;
+//     document.getElementById('txBaris').value = produk.baris;
+//   }
+
+//   // Update button teks & warna
+//   const btn = document.getElementById('btnTransaksi');
+//   btn.textContent = currentTipeTransaksi === 'MASUK' ? '✓ Konfirmasi Masuk' : '✓ Konfirmasi Keluar';
+//   btn.className = 'btn ' + (currentTipeTransaksi === 'MASUK' ? 'btn-success' : 'btn-danger');
+
+//   // Show/hide lokasi section
+//   document.getElementById('lokasiMasukSection').style.display = currentTipeTransaksi === 'MASUK' ? 'block' : 'none';
+// }
+
 function showResultFound(produk, lokasiProduk = []) {
   currentScanResult = produk;
 
@@ -377,24 +471,20 @@ function showResultFound(produk, lokasiProduk = []) {
   // Update button teks & warna
   const btn = document.getElementById('btnTransaksi');
   if (btn) {
-    btn.textContent = currentTipeTransaksi === 'MASUK' ? '✓ Konfirmasi Masuk' : '✓ Konfirmasi Keluar';
-    btn.className = 'btn ' + (currentTipeTransaksi === 'MASUK' ? 'btn-success' : 'btn-danger');
+    if (currentTipeTransaksi === 'MASUK') { btn.textContent = '✓ Konfirmasi Masuk'; btn.className = 'btn btn-success'; }
+    else if (currentTipeTransaksi === 'KELUAR') { btn.textContent = '✓ Konfirmasi Keluar'; btn.className = 'btn btn-danger'; }
+    else if (currentTipeTransaksi === 'TAMBAH') { btn.textContent = '✓ Tambah Lokasi / Stok Baru'; btn.className = 'btn btn-primary'; }
   }
 
-  // Tampilkan/sembunyikan area berdasarkan mode aktif
+  // Tampilkan form area
   const lokasiMasuk = document.getElementById('lokasiMasukSection');
-  if (lokasiMasuk) lokasiMasuk.style.display = currentTipeTransaksi === 'MASUK' ? 'block' : 'none';
+  if (lokasiMasuk) lokasiMasuk.style.display = (currentTipeTransaksi === 'MASUK' || currentTipeTransaksi === 'TAMBAH') ? 'block' : 'none';
 
   const formTx = document.getElementById('formTransaksiSection');
   const sudahAda = document.getElementById('sudahAdaSection');
   if (formTx && sudahAda) {
-    if (currentTipeTransaksi === 'TAMBAH') {
-      formTx.style.display = 'none';
-      sudahAda.style.display = 'block';
-    } else {
-      formTx.style.display = 'block';
-      sudahAda.style.display = 'none';
-    }
+    formTx.style.display = 'block'; // Selalu tampilkan form transaksi
+    sudahAda.style.display = currentTipeTransaksi === 'TAMBAH' ? 'block' : 'none';
   }
 }
 
@@ -441,8 +531,26 @@ function quickAddProduk() {
 // =============================================
 // TIPE TRANSAKSI
 // =============================================
+// function setTipeTransaksi(tipe) {
+//   currentTipeTransaksi = tipe;
+//   document.getElementById('tab-masuk').classList.toggle('active', tipe === 'MASUK');
+//   document.getElementById('tab-keluar').classList.toggle('active', tipe === 'KELUAR');
+  
+//   const badge = document.getElementById('scan-tipe-badge');
+//   badge.textContent = tipe;
+//   badge.className = 'badge ' + (tipe === 'MASUK' ? 'badge-green' : 'badge-red');
+
+//   document.getElementById('lokasiMasukSection').style.display = tipe === 'MASUK' ? 'block' : 'none';
+
+//   if (currentScanResult) {
+//     const btn = document.getElementById('btnTransaksi');
+//     btn.textContent = tipe === 'MASUK' ? '✓ Konfirmasi Masuk' : '✓ Konfirmasi Keluar';
+//     btn.className = 'btn ' + (tipe === 'MASUK' ? 'btn-success' : 'btn-danger');
+//   }
+// }
+
 // =============================================
-// TIPE TRANSAKSI (Diperbarui)
+// TIPE TRANSAKSI
 // =============================================
 function setTipeTransaksi(tipe) {
   currentTipeTransaksi = tipe;
@@ -462,31 +570,27 @@ function setTipeTransaksi(tipe) {
   
   if (tipe === 'MASUK') badge.className = 'badge badge-green';
   else if (tipe === 'KELUAR') badge.className = 'badge badge-red';
-  else badge.className = 'badge badge-blue'; // Untuk Tambah Data
+  else badge.className = 'badge badge-blue';
 
-  // Tampilkan/sembunyikan lokasi (hanya untuk barang masuk)
+  // Tampilkan form lokasi untuk MASUK dan TAMBAH DATA
   const lokasiMasuk = document.getElementById('lokasiMasukSection');
-  if (lokasiMasuk) lokasiMasuk.style.display = tipe === 'MASUK' ? 'block' : 'none';
+  if (lokasiMasuk) lokasiMasuk.style.display = (tipe === 'MASUK' || tipe === 'TAMBAH') ? 'block' : 'none';
 
-  // Toggle antara Form Transaksi vs Info Barang Sudah Ada
+  // Form Transaksi selalu tampil, Banner Info hanya tampil di mode TAMBAH
   const formTx = document.getElementById('formTransaksiSection');
   const sudahAda = document.getElementById('sudahAdaSection');
   if (formTx && sudahAda) {
-    if (tipe === 'TAMBAH') {
-      formTx.style.display = 'none';
-      sudahAda.style.display = 'block';
-    } else {
-      formTx.style.display = 'block';
-      sudahAda.style.display = 'none';
-    }
+    formTx.style.display = 'block';
+    sudahAda.style.display = tipe === 'TAMBAH' ? 'block' : 'none';
   }
 
   // Update tombol transaksi jika produk sedang terpilih
   if (currentScanResult) {
     const btn = document.getElementById('btnTransaksi');
     if (btn) {
-      btn.textContent = tipe === 'MASUK' ? '✓ Konfirmasi Masuk' : '✓ Konfirmasi Keluar';
-      btn.className = 'btn ' + (tipe === 'MASUK' ? 'btn-success' : 'btn-danger');
+      if (tipe === 'MASUK') { btn.textContent = '✓ Konfirmasi Masuk'; btn.className = 'btn btn-success'; }
+      else if (tipe === 'KELUAR') { btn.textContent = '✓ Konfirmasi Keluar'; btn.className = 'btn btn-danger'; }
+      else if (tipe === 'TAMBAH') { btn.textContent = '✓ Tambah Lokasi / Stok Baru'; btn.className = 'btn btn-primary'; }
     }
   }
 }
@@ -494,6 +598,58 @@ function setTipeTransaksi(tipe) {
 // =============================================
 // TRANSAKSI
 // =============================================
+// function submitTransaksi() {
+//   if (!currentScanResult) { showToast('Scan atau cari produk terlebih dahulu', 'error'); return; }
+//   const jumlah = parseInt(document.getElementById('txJumlah').value);
+//   if (!jumlah || jumlah <= 0) { showToast('Masukkan jumlah yang valid', 'error'); return; }
+
+//   const rak = document.getElementById('txRak').value;
+//   const lantai = document.getElementById('txLantai').value;
+//   const baris = document.getElementById('txBaris').value;
+
+//   if (currentTipeTransaksi === 'MASUK' && (!rak || !lantai || !baris)) {
+//     showToast('Pilih lokasi rak, lantai, dan baris untuk barang masuk', 'error');
+//     return;
+//   }
+//   if (currentTipeTransaksi === 'KELUAR' && jumlah > currentScanResult.stok) {
+//     if (!confirm(`Stok saat ini: ${currentScanResult.stok}. Jumlah keluar: ${jumlah}. Stok akan menjadi ${currentScanResult.stok - jumlah}. Lanjutkan?`)) return;
+//   }
+
+//   showLoading();
+//   const data = {
+//     barcode: currentScanResult.barcode,
+//     namaProduk: currentScanResult.nama,
+//     tipe: currentTipeTransaksi,
+//     jumlah: jumlah,
+//     rak: rak, lantai: lantai, baris: baris,
+//     catatan: document.getElementById('txCatatan').value,
+//     operator: 'Admin'
+//   };
+
+//   callAPI('catatTransaksi', data)
+//     .then(result => {
+//       hideLoading();
+//       if (result.success) {
+//         showToast('Transaksi berhasil dicatat!', 'success');
+//         playBeep();
+//         // Reset form
+//         document.getElementById('txJumlah').value = 1;
+//         document.getElementById('txCatatan').value = '';
+//         document.getElementById('txRak').value = '';
+//         document.getElementById('txLantai').value = '';
+//         document.getElementById('txBaris').value = '';
+//         document.getElementById('resultFound').classList.remove('show');
+//         document.getElementById('resultEmpty').style.display = 'block';
+//         document.getElementById('manualBarcode').value = '';
+//         currentScanResult = null;
+//         loadDashboard();
+//       } else { showToast('Gagal: ' + result.message, 'error'); }
+//     })
+//     .catch(err => { hideLoading(); showToast('Error: ' + err, 'error'); });
+// }
+
+
+
 function submitTransaksi() {
   if (!currentScanResult) { showToast('Scan atau cari produk terlebih dahulu', 'error'); return; }
   const jumlah = parseInt(document.getElementById('txJumlah').value);
@@ -503,8 +659,9 @@ function submitTransaksi() {
   const lantai = document.getElementById('txLantai').value;
   const baris = document.getElementById('txBaris').value;
 
-  if (currentTipeTransaksi === 'MASUK' && (!rak || !lantai || !baris)) {
-    showToast('Pilih lokasi rak, lantai, dan baris untuk barang masuk', 'error');
+  // WAJIBKAN lokasi untuk MASUK dan TAMBAH
+  if ((currentTipeTransaksi === 'MASUK' || currentTipeTransaksi === 'TAMBAH') && (!rak || !lantai || !baris)) {
+    showToast('Pilih lokasi rak, lantai, dan baris', 'error');
     return;
   }
   if (currentTipeTransaksi === 'KELUAR' && jumlah > currentScanResult.stok) {
