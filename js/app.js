@@ -9,8 +9,10 @@ let currentScanResult = null;
 let allProdukData = [];
 let deleteTargetId = '';
 let lokasiData = [];
-// let scanTimeout = null;
 
+// Variabel global untuk Html5Qrcode
+let html5QrCode = null;
+let miniHtml5QrCode = null;
 
 // MASUKKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI
 const API_URL = "https://script.google.com/macros/s/AKfycbx1KNiotqJiFFscBzEe-ozBA_QEgBX111BtFbySWPgZTtmGWPnRFh4TO-a6M1khcKxg/exec"; 
@@ -162,134 +164,68 @@ function loadDashboard() {
 
 
 // =============================================
-// SCANNER — VERSI DIPERBAIKI
+// SCANNER — VERSI MODERN (Html5-Qrcode)
 // =============================================
 
-// State konsensus: kumpulkan hasil scan sebelum memutuskan
-let scanBuffer = {};
-const CONSENSUS_THRESHOLD = 3; // barcode harus terdeteksi 3x berturut-turut
-const CONSENSUS_WINDOW_MS = 2000; // dalam jendela 2 detik
-
-// Error threshold per format:
-// ITF-14 di kardus lebih "noisy" → threshold lebih longgar
-function getErrorThreshold(format) {
-  if (format === 'i2of5') return 0.30; // kardus kasar, kontras rendah
-  return 0.15; // EAN, Code128, Code39 — produk normal
-}
-
-// Consensus threshold per format:
-// ITF-14 cukup 2x karena lambat dideteksi
-function getConsensusThreshold(format) {
-  if (format === 'i2of5') return 2;
-  return CONSENSUS_THRESHOLD;
-}
-
 function startScanner() {
-  const viewport = document.getElementById('scanner-viewport');
   document.getElementById('scanIdle').style.display = 'none';
   document.getElementById('scannerOverlay').style.display = 'block';
   document.getElementById('scannerBox').classList.add('active');
   document.getElementById('btnStartScan').disabled = true;
   document.getElementById('btnStopScan').disabled = false;
 
-  // Reset buffer konsensus setiap mulai scan
-  scanBuffer = {};
+  html5QrCode = new Html5Qrcode("scanner-viewport");
+  scannerRunning = true;
 
-  Quagga.init({
-    inputStream: {
-      name: "Live",
-      type: "LiveStream",
-      target: viewport,
-      constraints: {
-        // Resolusi tinggi penting untuk ITF-14 di kardus
-        width: { min: 640, ideal: 1920 },
-        height: { min: 480, ideal: 1080 },
-        facingMode: "environment",
-        advanced: [{ focusMode: "continuous" }]
-      }
+  const config = {
+    fps: 15,
+    qrbox: { width: 300, height: 150 }, // Bentuk horizontal cocok untuk kardus
+    formatsToSupport: [
+      Html5QrcodeSupportedFormats.ITF,      // Kardus (Aqua, Roma, dll)
+      Html5QrcodeSupportedFormats.EAN_13,   // Produk Satuan
+      Html5QrcodeSupportedFormats.CODE_128,
+      Html5QrcodeSupportedFormats.CODE_39
+    ]
+  };
+
+  html5QrCode.start(
+    { facingMode: "environment" },
+    config,
+    (decodedText, decodedResult) => {
+      // Konsensus tercapai otomatis oleh library!
+      showScanIndicator('scanIndicator');
+      playBeep();
+      stopScanner(); // Matikan kamera agar tidak scan ganda
+
+      const cleanCode = decodedText.trim().replace(/\s+/g, '');
+      document.getElementById('manualBarcode').value = cleanCode;
+      processBarcode(cleanCode);
     },
-    decoder: {
-      readers: [
-        "ean_reader",        // EAN-13 & EAN-8 — produk satuan
-        "code_128_reader",   // Code 128 — barcode internal gudang
-        "code_39_reader",    // Code 39 — peralatan industri
-        "i2of5_reader",      // ITF-14 — karton/box logistik (AQUA, Roma, Pucuk Harum, dsb)
-      ],
-      debug: {
-        drawBoundingBox: false,
-        showFrequency: false,
-        drawScanline: false,
-        showPattern: false
-      }
-    },
-    locator: {
-      // "large" patch lebih baik untuk barcode lebar di kardus
-      // halfSample: false → full resolution, kritis untuk ITF-14
-      patchSize: "large",
-      halfSample: false
-    },
-    numOfWorkers: 4,   // Lebih banyak worker = lebih cepat proses frame
-    frequency: 10,     // Lebih rendah = lebih dalam per frame (kualitas > kuantitas)
-    locate: true
-  }, function(err) {
-    if (err) {
-      showToast('Gagal mengakses kamera: ' + err, 'error');
-      stopScanner();
-      return;
+    (errorMessage) => {
+      // Abaikan error per frame (normal saat mencari barcode)
     }
-    Quagga.start();
-    scannerRunning = true;
-  });
-
-  Quagga.onDetected(function(result) {
-    if (!result || !result.codeResult) return;
-
-    const code = result.codeResult.code;
-    const format = result.codeResult.format;
-
-    // Validasi 1: Tolak hasil kosong atau terlalu pendek
-    if (!code || code.length < 6) return;
-
-    // Validasi 2: Cek error rate — threshold berbeda per format
-    const errors = result.codeResult.decodedCodes
-      .filter(x => x.error !== undefined)
-      .map(x => x.error);
-    if (errors.length > 0) {
-      const avgError = errors.reduce((a, b) => a + b, 0) / errors.length;
-      if (avgError > getErrorThreshold(format)) return;
-    }
-
-    // Validasi 3: Mekanisme konsensus (threshold berbeda per format)
-    const now = Date.now();
-    if (!scanBuffer[code]) {
-      scanBuffer[code] = { count: 0, firstSeen: now, format };
-    }
-    if (now - scanBuffer[code].firstSeen > CONSENSUS_WINDOW_MS) {
-      scanBuffer[code] = { count: 0, firstSeen: now, format };
-    }
-    scanBuffer[code].count++;
-
-    if (scanBuffer[code].count < getConsensusThreshold(format)) return;
-
-    // Konsensus tercapai!
-    scanBuffer = {};
-
-    showScanIndicator('scanIndicator');
-    playBeep();
+  ).catch((err) => {
+    showToast('Gagal mengakses kamera: ' + err, 'error');
     stopScanner();
-
-    const cleanCode = code.trim().replace(/\s+/g, '');
-    document.getElementById('manualBarcode').value = cleanCode;
-    processBarcode(cleanCode);
   });
 }
 
-
 function stopScanner() {
-  if (scannerRunning) {
-    Quagga.stop();
+  if (scannerRunning && html5QrCode) {
+    html5QrCode.stop().then(() => {
+      html5QrCode.clear();
+      resetScannerUI();
+    }).catch((err) => {
+      console.error("Gagal menghentikan scanner:", err);
+      resetScannerUI();
+    });
     scannerRunning = false;
+  } else {
+    resetScannerUI();
   }
+}
+
+function resetScannerUI() {
   document.getElementById('scanner-viewport').innerHTML = '';
   document.getElementById('scannerOverlay').style.display = 'none';
   document.getElementById('scannerBox').classList.remove('active');
@@ -909,16 +845,15 @@ function closeLokasiDetail() {
 
 // =============================================
 // MINI SCANNER (untuk Modal Produk & Scan Info)
+// Versi Modern dengan Html5-Qrcode
 // =============================================
 
-// ✅ FIX: set _scanInfoMode = false agar tidak masuk mode info
 function scanForModal() {
   window._scanInfoMode = false;
   openModal('modalMiniScan');
   setTimeout(startMiniScanner, 300);
 }
 
-// Scan di halaman produk — cari info atau tambah produk baru
 function scanInfoProduk() {
   window._scanInfoMode = true;
   openModal('modalMiniScan');
@@ -926,83 +861,64 @@ function scanInfoProduk() {
 }
 
 function startMiniScanner() {
-  const viewport = document.getElementById('mini-scanner-viewport');
   document.getElementById('miniScanIdle').style.display = 'none';
 
-  let miniBuffer = {};
+  miniHtml5QrCode = new Html5Qrcode("mini-scanner-viewport");
+  miniScannerRunning = true;
 
-  // ✅ offDetected SEBELUM init agar tidak ada listener lama
-  Quagga.offDetected();
+  const config = {
+    fps: 15,
+    qrbox: { width: 250, height: 100 },
+    formatsToSupport: [
+      Html5QrcodeSupportedFormats.ITF,
+      Html5QrcodeSupportedFormats.EAN_13,
+      Html5QrcodeSupportedFormats.CODE_128,
+      Html5QrcodeSupportedFormats.CODE_39
+    ]
+  };
 
-  Quagga.init({
-    inputStream: {
-      name: "Mini",
-      type: "LiveStream",
-      target: viewport,
-      constraints: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } }
+  miniHtml5QrCode.start(
+    { facingMode: "environment" },
+    config,
+    (decodedText, decodedResult) => {
+      showScanIndicator('miniScanIndicator');
+      playBeep();
+
+      const capturedCode = decodedText.trim().replace(/\s+/g, '');
+      closeMiniScanner();
+      handleModalBarcode(capturedCode);
     },
-    decoder: {
-      readers: ["ean_reader", "code_128_reader", "code_39_reader", "i2of5_reader"]
-    },
-    locator: { patchSize: "large", halfSample: false },
-    numOfWorkers: 2,
-    frequency: 10,
-    locate: true
-  }, function(err) {
-    if (err) {
-      document.getElementById('miniScanIdle').style.display = 'block';
-      document.getElementById('miniScanIdle').querySelector('p').textContent = 'Gagal akses kamera';
-      return;
+    (errorMessage) => {
+      // Abaikan error per frame
     }
-    Quagga.start();
-    miniScannerRunning = true;
-  });
-
-  Quagga.onDetected(function(result) {
-    if (!result || !result.codeResult || !result.codeResult.code) return;
-
-    const code = result.codeResult.code;
-    const format = result.codeResult.format;
-    if (!code || code.length < 6) return;
-
-    const errors = result.codeResult.decodedCodes
-      .filter(x => x.error !== undefined).map(x => x.error);
-    if (errors.length > 0) {
-      const avgError = errors.reduce((a, b) => a + b, 0) / errors.length;
-      if (avgError > getErrorThreshold(format)) return;
-    }
-
-    const now = Date.now();
-    if (!miniBuffer[code]) miniBuffer[code] = { count: 0, firstSeen: now };
-    if (now - miniBuffer[code].firstSeen > 2000) miniBuffer[code] = { count: 0, firstSeen: now };
-    miniBuffer[code].count++;
-    if (miniBuffer[code].count < 2) return;
-
-    miniBuffer = {};
-    const cleanCode = code.trim().replace(/\s+/g, '');
-    showScanIndicator('miniScanIndicator');
-    playBeep();
-
-    // Simpan barcode sebelum close agar tidak hilang
-    const capturedCode = cleanCode;
-    closeMiniScanner();
-    handleModalBarcode(capturedCode);
+  ).catch((err) => {
+    document.getElementById('miniScanIdle').style.display = 'block';
+    document.getElementById('miniScanIdle').querySelector('p').textContent = 'Gagal akses kamera';
+    miniScannerRunning = false;
   });
 }
 
-// ✅ FIX: closeMiniScanner menutup modal LANGSUNG (tidak lewat closeModal)
-// sehingga tidak terjadi infinite recursion
 function closeMiniScanner() {
-  if (miniScannerRunning) {
-    Quagga.offDetected();
-    Quagga.stop();
+  if (miniScannerRunning && miniHtml5QrCode) {
+    miniHtml5QrCode.stop().then(() => {
+      miniHtml5QrCode.clear();
+      resetMiniScannerUI();
+    }).catch(err => {
+      console.error("Gagal menghentikan mini scanner:", err);
+      resetMiniScannerUI();
+    });
     miniScannerRunning = false;
+  } else {
+    resetMiniScannerUI();
   }
+}
+
+function resetMiniScannerUI() {
   const vp = document.getElementById('mini-scanner-viewport');
   if (vp) vp.innerHTML = '';
   const idle = document.getElementById('miniScanIdle');
   if (idle) idle.style.display = 'block';
-  // Tutup modal langsung — JANGAN panggil closeModal agar tidak loop
+  // Tutup modal langsung
   const modal = document.getElementById('modalMiniScan');
   if (modal) modal.classList.remove('show');
 }
@@ -1017,11 +933,8 @@ function useMiniBarcode() {
 
 // =============================================
 // HANDLE BARCODE DARI MINI SCANNER
-// Mode 1 (_scanInfoMode=true)  → cek info produk di halaman Data Produk
-// Mode 2 (_scanInfoMode=false) → auto-fill form modal Tambah/Edit Produk
 // =============================================
 function handleModalBarcode(barcode) {
-
   // ── MODE SCAN INFO (dari halaman Data Produk) ──
   if (window._scanInfoMode) {
     window._scanInfoMode = false;
@@ -1068,7 +981,6 @@ function handleModalBarcode(barcode) {
   }
 
   // ── MODE NORMAL (dari modal Tambah/Edit Produk) ──
-  // ✅ FIX: isi barcode field DULU, lalu satu kali callAPI (tidak duplikat)
   document.getElementById('produkBarcode').value = barcode;
 
   showLoading();
@@ -1091,7 +1003,6 @@ function handleModalBarcode(barcode) {
         document.getElementById('produkBaris').value = p.baris || '';
         showToast('Produk ditemukan — data terisi otomatis', 'info');
       }
-      // Jika tidak ditemukan: barcode sudah terisi, field lain kosong untuk diisi manual
     })
     .catch(() => hideLoading());
 }
@@ -1102,14 +1013,20 @@ function handleModalBarcode(barcode) {
 function openModal(id) {
   document.getElementById(id).classList.add('show');
 }
+
 function closeModal(id) {
   document.getElementById(id).classList.remove('show');
-  // Jika menutup modal scanner: stop Quagga langsung (tidak panggil closeMiniScanner
-  // agar tidak terjadi loop: closeModal → closeMiniScanner → closeModal → ...)
+  
   if (id === 'modalMiniScan') {
-    if (miniScannerRunning) {
-      Quagga.offDetected();
-      Quagga.stop();
+    if (miniScannerRunning && miniHtml5QrCode) {
+      miniHtml5QrCode.stop().then(() => {
+        miniHtml5QrCode.clear();
+        miniScannerRunning = false;
+      }).catch(err => {
+        console.error(err);
+        miniScannerRunning = false;
+      });
+    } else {
       miniScannerRunning = false;
     }
     const vp = document.getElementById('mini-scanner-viewport');
