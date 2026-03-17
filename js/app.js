@@ -168,7 +168,21 @@ function loadDashboard() {
 // State konsensus: kumpulkan hasil scan sebelum memutuskan
 let scanBuffer = {};
 const CONSENSUS_THRESHOLD = 3; // barcode harus terdeteksi 3x berturut-turut
-const CONSENSUS_WINDOW_MS = 1500; // dalam jendela 1.5 detik
+const CONSENSUS_WINDOW_MS = 2000; // dalam jendela 2 detik
+
+// Error threshold per format:
+// ITF-14 di kardus lebih "noisy" → threshold lebih longgar
+function getErrorThreshold(format) {
+  if (format === 'i2of5') return 0.30; // kardus kasar, kontras rendah
+  return 0.15; // EAN, Code128, Code39 — produk normal
+}
+
+// Consensus threshold per format:
+// ITF-14 cukup 2x karena lambat dideteksi
+function getConsensusThreshold(format) {
+  if (format === 'i2of5') return 2;
+  return CONSENSUS_THRESHOLD;
+}
 
 function startScanner() {
   const viewport = document.getElementById('scanner-viewport');
@@ -187,23 +201,20 @@ function startScanner() {
       type: "LiveStream",
       target: viewport,
       constraints: {
-        width: { min: 640, ideal: 1280 },
-        height: { min: 480, ideal: 720 },
+        // Resolusi tinggi penting untuk ITF-14 di kardus
+        width: { min: 640, ideal: 1920 },
+        height: { min: 480, ideal: 1080 },
         facingMode: "environment",
-        // Matikan autofokus terus-menerus (penyebab hasil tidak stabil)
         advanced: [{ focusMode: "continuous" }]
       }
     },
     decoder: {
-      // ✅ HANYA aktifkan reader yang relevan untuk gudang
-      // EAN-13 = format utama produk retail Indonesia (termasuk AQUA)
       readers: [
-          "ean_reader",        // EAN-13 & EAN-8 — produk satuan
-          "code_128_reader",   // Code 128 — barcode internal gudang
-          "code_39_reader",    // Code 39 — peralatan industri
-          "i2of5_reader",      // ITF-14 — karton/box logistik (AQUA, dsb)
-        ],
-      // Wajibkan checksum valid (tolak hasil yang tidak lolos validasi)
+        "ean_reader",        // EAN-13 & EAN-8 — produk satuan
+        "code_128_reader",   // Code 128 — barcode internal gudang
+        "code_39_reader",    // Code 39 — peralatan industri
+        "i2of5_reader",      // ITF-14 — karton/box logistik (AQUA, Roma, Pucuk Harum, dsb)
+      ],
       debug: {
         drawBoundingBox: false,
         showFrequency: false,
@@ -212,11 +223,13 @@ function startScanner() {
       }
     },
     locator: {
-      patchSize: "medium",      // "medium" lebih akurat dari "large"
-      halfSample: true
+      // "large" patch lebih baik untuk barcode lebar di kardus
+      // halfSample: false → full resolution, kritis untuk ITF-14
+      patchSize: "large",
+      halfSample: false
     },
-    numOfWorkers: 2,             // Cukup 2 worker untuk stabilitas
-    frequency: 15,               // 15 frame per detik
+    numOfWorkers: 4,   // Lebih banyak worker = lebih cepat proses frame
+    frequency: 10,     // Lebih rendah = lebih dalam per frame (kualitas > kuantitas)
     locate: true
   }, function(err) {
     if (err) {
@@ -234,45 +247,37 @@ function startScanner() {
     const code = result.codeResult.code;
     const format = result.codeResult.format;
 
-    // ✅ Validasi 1: Tolak hasil kosong atau terlalu pendek
+    // Validasi 1: Tolak hasil kosong atau terlalu pendek
     if (!code || code.length < 6) return;
 
-    // ✅ Validasi 2: Tolak jika error rate tinggi (hasil tidak yakin)
-    // decodedCodes berisi array segment; cek rata-rata error
+    // Validasi 2: Cek error rate — threshold berbeda per format
     const errors = result.codeResult.decodedCodes
       .filter(x => x.error !== undefined)
       .map(x => x.error);
     if (errors.length > 0) {
       const avgError = errors.reduce((a, b) => a + b, 0) / errors.length;
-      if (avgError > 0.15) return; // Tolak jika error rate > 15%
+      if (avgError > getErrorThreshold(format)) return;
     }
 
-    // ✅ Validasi 3: Mekanisme konsensus
-    // Barcode harus muncul CONSENSUS_THRESHOLD kali dalam CONSENSUS_WINDOW_MS
+    // Validasi 3: Mekanisme konsensus (threshold berbeda per format)
     const now = Date.now();
-
     if (!scanBuffer[code]) {
-      scanBuffer[code] = { count: 0, firstSeen: now };
+      scanBuffer[code] = { count: 0, firstSeen: now, format };
     }
-
-    // Reset jika sudah terlalu lama (scan dari sesi lama)
     if (now - scanBuffer[code].firstSeen > CONSENSUS_WINDOW_MS) {
-      scanBuffer[code] = { count: 0, firstSeen: now };
+      scanBuffer[code] = { count: 0, firstSeen: now, format };
     }
-
     scanBuffer[code].count++;
 
-    // Belum cukup deteksi, tunggu
-    if (scanBuffer[code].count < CONSENSUS_THRESHOLD) return;
+    if (scanBuffer[code].count < getConsensusThreshold(format)) return;
 
-    // ✅ Konsensus tercapai! Proses barcode
-    scanBuffer = {}; // Reset buffer
+    // Konsensus tercapai!
+    scanBuffer = {};
 
     showScanIndicator('scanIndicator');
     playBeep();
     stopScanner();
 
-    // Normalisasi: hapus spasi, pastikan format bersih
     const cleanCode = code.trim().replace(/\s+/g, '');
     document.getElementById('manualBarcode').value = cleanCode;
     processBarcode(cleanCode);
@@ -363,19 +368,19 @@ function showResultFound(produk, lokasiProduk = []) {
   document.getElementById('resDeskripsi').textContent = produk.deskripsi || '—';
 
   // Stok dengan indikator warna — hitung dari total semua lokasi jika ada
-const totalStok = lokasiProduk.length > 0
-  ? lokasiProduk.reduce((sum, l) => sum + (parseInt(l.jumlah) || 0), 0)
-  : produk.stok;
+  const totalStok = lokasiProduk.length > 0
+    ? lokasiProduk.reduce((sum, l) => sum + (parseInt(l.jumlah) || 0), 0)
+    : produk.stok;
 
-const stokEl = document.getElementById('resStok');
-stokEl.textContent = totalStok;
-stokEl.className = 'meta-value ' + (totalStok <= 0 ? 'stok-warning' : totalStok <= 5 ? 'stok-low' : 'stok-ok');
+  const stokEl = document.getElementById('resStok');
+  stokEl.textContent = totalStok;
+  stokEl.className = 'meta-value ' + (totalStok <= 0 ? 'stok-warning' : totalStok <= 5 ? 'stok-low' : 'stok-ok');
 
-// Badge status stok
-const stokBadgeEl = document.getElementById('resStokBadge');
-if (totalStok <= 0) {
+  // Badge status stok
+  const stokBadgeEl = document.getElementById('resStokBadge');
+  if (totalStok <= 0) {
     stokBadgeEl.textContent = 'HABIS';
-      stokBadgeEl.className = 'badge badge-red';
+    stokBadgeEl.className = 'badge badge-red';
   } else if (totalStok <= 5) {
     stokBadgeEl.textContent = 'STOK RENDAH';
     stokBadgeEl.className = 'badge badge-yellow';
@@ -567,8 +572,29 @@ function loadProduk() {
       if (!result.success) { showToast('Gagal memuat produk', 'error'); return; }
       allProdukData = result.data;
       renderProdukTable(allProdukData);
+      // Isi dropdown kategori dari data yang ada
+      buildKategoriFilter(allProdukData);
     })
     .catch(err => { hideLoading(); showToast('Error: ' + err, 'error'); });
+}
+
+function buildKategoriFilter(data) {
+  const select = document.getElementById('filterKategori');
+  if (!select) return;
+  // Kumpulkan kategori unik, buang yang kosong
+  const kategoriSet = new Set(
+    data.map(p => p.kategori).filter(k => k && k.trim() !== '' && k !== '—')
+  );
+  const currentVal = select.value;
+  select.innerHTML = '<option value="">Semua Kategori</option>';
+  [...kategoriSet].sort().forEach(k => {
+    const opt = document.createElement('option');
+    opt.value = k;
+    opt.textContent = k;
+    select.appendChild(opt);
+  });
+  // Pertahankan pilihan sebelumnya jika masih ada
+  if (currentVal) select.value = currentVal;
 }
 
 function renderProdukTable(data) {
@@ -599,14 +625,50 @@ function renderProdukTable(data) {
   }).join('');
 }
 
+// ── FILTER: dipanggil setiap kali search atau kategori berubah ──
 function filterProdukTable() {
-  const q = document.getElementById('searchProduk').value.toLowerCase();
-  const filtered = allProdukData.filter(p =>
-    p.nama.toLowerCase().includes(q) ||
-    p.barcode.toLowerCase().includes(q) ||
-    (p.kategori && p.kategori.toLowerCase().includes(q))
-  );
+  const q = document.getElementById('searchProduk').value.toLowerCase().trim();
+  const kategori = document.getElementById('filterKategori')
+    ? document.getElementById('filterKategori').value
+    : '';
+
+  const filtered = allProdukData.filter(p => {
+    const matchText = !q ||
+      p.nama.toLowerCase().includes(q) ||
+      p.barcode.toLowerCase().includes(q) ||
+      (p.kategori && p.kategori.toLowerCase().includes(q)) ||
+      (p.deskripsi && p.deskripsi.toLowerCase().includes(q));
+
+    const matchKategori = !kategori || p.kategori === kategori;
+
+    return matchText && matchKategori;
+  });
+
   renderProdukTable(filtered);
+
+  // Tampilkan info jumlah hasil filter
+  const infoEl = document.getElementById('produkFilterInfo');
+  if (infoEl) {
+    const isFiltering = q || kategori;
+    if (isFiltering) {
+      infoEl.style.display = 'block';
+      infoEl.innerHTML = `Menampilkan <strong>${filtered.length}</strong> dari <strong>${allProdukData.length}</strong> produk` +
+        (kategori ? ` · Kategori: <strong>${kategori}</strong>` : '') +
+        (q ? ` · Kata kunci: <strong>"${q}"</strong>` : '') +
+        (filtered.length < allProdukData.length
+          ? ` &nbsp;<a href="#" onclick="resetFilterProduk();return false;" style="color:var(--accent);font-weight:600">✕ Reset filter</a>`
+          : '');
+    } else {
+      infoEl.style.display = 'none';
+    }
+  }
+}
+
+function resetFilterProduk() {
+  document.getElementById('searchProduk').value = '';
+  const sel = document.getElementById('filterKategori');
+  if (sel) sel.value = '';
+  filterProdukTable();
 }
 
 function openModalTambahProduk() {
@@ -846,13 +908,22 @@ function closeLokasiDetail() {
 }
 
 // =============================================
-// MINI SCANNER (untuk Modal)
+// MINI SCANNER (untuk Modal Produk & Scan Info)
 // =============================================
+
+// ✅ FIX: set _scanInfoMode = false agar tidak masuk mode info
 function scanForModal() {
+  window._scanInfoMode = false;
   openModal('modalMiniScan');
   setTimeout(startMiniScanner, 300);
 }
 
+// Scan di halaman produk — cari info atau tambah produk baru
+function scanInfoProduk() {
+  window._scanInfoMode = true;
+  openModal('modalMiniScan');
+  setTimeout(startMiniScanner, 300);
+}
 
 function startMiniScanner() {
   const viewport = document.getElementById('mini-scanner-viewport');
@@ -860,18 +931,21 @@ function startMiniScanner() {
 
   let miniBuffer = {};
 
+  // ✅ offDetected SEBELUM init agar tidak ada listener lama
+  Quagga.offDetected();
+
   Quagga.init({
     inputStream: {
       name: "Mini",
       type: "LiveStream",
       target: viewport,
-      constraints: { facingMode: "environment", width: { ideal: 640 }, height: { ideal: 480 } }
+      constraints: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } }
     },
     decoder: {
       readers: ["ean_reader", "code_128_reader", "code_39_reader", "i2of5_reader"]
     },
-    locator: { patchSize: "medium", halfSample: true },
-    numOfWorkers: 1,
+    locator: { patchSize: "large", halfSample: false },
+    numOfWorkers: 2,
     frequency: 10,
     locate: true
   }, function(err) {
@@ -883,25 +957,24 @@ function startMiniScanner() {
     Quagga.start();
     miniScannerRunning = true;
   });
-  Quagga.offDetected();
+
   Quagga.onDetected(function(result) {
     if (!result || !result.codeResult || !result.codeResult.code) return;
 
     const code = result.codeResult.code;
+    const format = result.codeResult.format;
     if (!code || code.length < 6) return;
 
-    // Validasi error rate
     const errors = result.codeResult.decodedCodes
       .filter(x => x.error !== undefined).map(x => x.error);
     if (errors.length > 0) {
       const avgError = errors.reduce((a, b) => a + b, 0) / errors.length;
-      if (avgError > 0.15) return;
+      if (avgError > getErrorThreshold(format)) return;
     }
 
-    // Konsensus sederhana (2x cukup untuk mini scanner)
     const now = Date.now();
     if (!miniBuffer[code]) miniBuffer[code] = { count: 0, firstSeen: now };
-    if (now - miniBuffer[code].firstSeen > 1500) miniBuffer[code] = { count: 0, firstSeen: now };
+    if (now - miniBuffer[code].firstSeen > 2000) miniBuffer[code] = { count: 0, firstSeen: now };
     miniBuffer[code].count++;
     if (miniBuffer[code].count < 2) return;
 
@@ -909,43 +982,47 @@ function startMiniScanner() {
     const cleanCode = code.trim().replace(/\s+/g, '');
     showScanIndicator('miniScanIndicator');
     playBeep();
+
+    // Simpan barcode sebelum close agar tidak hilang
+    const capturedCode = cleanCode;
     closeMiniScanner();
-    // document.getElementById('produkBarcode').value = cleanCode;
-    handleModalBarcode(cleanCode);
+    handleModalBarcode(capturedCode);
   });
 }
 
-// Scan di halaman produk — cari info atau tambah produk baru
-function scanInfoProduk() {
-  // Pakai mini scanner modal, tapi hasil diarahkan ke lookup dulu
-  window._scanInfoMode = true;
-  openModal('modalMiniScan');
-  setTimeout(startMiniScanner, 300);
-}
-
+// ✅ FIX: closeMiniScanner menutup modal LANGSUNG (tidak lewat closeModal)
+// sehingga tidak terjadi infinite recursion
 function closeMiniScanner() {
   if (miniScannerRunning) {
+    Quagga.offDetected();
     Quagga.stop();
     miniScannerRunning = false;
   }
-  document.getElementById('mini-scanner-viewport').innerHTML = '';
-  document.getElementById('miniScanIdle').style.display = 'block';
-  closeModal('modalMiniScan');
+  const vp = document.getElementById('mini-scanner-viewport');
+  if (vp) vp.innerHTML = '';
+  const idle = document.getElementById('miniScanIdle');
+  if (idle) idle.style.display = 'block';
+  // Tutup modal langsung — JANGAN panggil closeModal agar tidak loop
+  const modal = document.getElementById('modalMiniScan');
+  if (modal) modal.classList.remove('show');
 }
 
 function useMiniBarcode() {
   const val = document.getElementById('miniManualBarcode').value.trim();
   if (!val) { showToast('Masukkan kode barcode', 'error'); return; }
   closeMiniScanner();
-  handleModalBarcode(val);
   document.getElementById('miniManualBarcode').value = '';
+  handleModalBarcode(val);
 }
 
-// Dipanggil setelah scan/input barcode di modal produk
+// =============================================
+// HANDLE BARCODE DARI MINI SCANNER
+// Mode 1 (_scanInfoMode=true)  → cek info produk di halaman Data Produk
+// Mode 2 (_scanInfoMode=false) → auto-fill form modal Tambah/Edit Produk
+// =============================================
 function handleModalBarcode(barcode) {
-  document.getElementById('produkBarcode').value = barcode;
 
-  // Mode scan info: tampilkan hasil tanpa buka modal
+  // ── MODE SCAN INFO (dari halaman Data Produk) ──
   if (window._scanInfoMode) {
     window._scanInfoMode = false;
     showLoading();
@@ -955,6 +1032,7 @@ function handleModalBarcode(barcode) {
     ]).then(([produkResult, lokasiResult]) => {
       hideLoading();
       const semuaLokasi = lokasiResult.data || [];
+
       if (produkResult.success) {
         const p = produkResult.data;
         const lokasiProduk = semuaLokasi.filter(l => String(l.barcode) === String(barcode));
@@ -964,36 +1042,45 @@ function handleModalBarcode(barcode) {
         const lokasiStr = lokasiProduk.length > 0
           ? lokasiProduk.map(l => `R${l.rak} L${l.lantai} B${l.baris} (${l.jumlah})`).join(' · ')
           : 'Belum ada lokasi';
-        showToast(`${p.nama} | Stok: ${totalStok} ${p.satuan} | ${lokasiStr}`, 'info');
-        // Sekaligus buka modal edit jika ingin update
+
         setTimeout(() => {
-          if (confirm(`Produk ditemukan: ${p.nama}\nStok: ${totalStok} ${p.satuan}\nLokasi: ${lokasiStr}\n\nBuka untuk diedit?`)) {
+          if (confirm(
+            `✅ Produk Ditemukan\n\n` +
+            `Nama   : ${p.nama}\n` +
+            `Stok   : ${totalStok} ${p.satuan}\n` +
+            `Lokasi : ${lokasiStr}\n\n` +
+            `Buka untuk diedit?`
+          )) {
             editProdukById(p.id);
           }
-        }, 300);
+        }, 100);
+
       } else {
-        if (confirm(`Barcode ${barcode} belum terdaftar.\nTambah sebagai produk baru?`)) {
-          openModalTambahProduk();
-          document.getElementById('produkBarcode').value = barcode;
-        }
+        setTimeout(() => {
+          if (confirm(`❓ Barcode ${barcode} belum terdaftar.\nTambah sebagai produk baru?`)) {
+            openModalTambahProduk();
+            document.getElementById('produkBarcode').value = barcode;
+          }
+        }, 100);
       }
     }).catch(() => hideLoading());
-    return; // stop di sini, jangan lanjut ke bawah
+    return; // stop, jangan lanjut ke mode normal
   }
 
-  // Mode normal (dari modal produk)
-  showLoading();
-  callAPI('getProdukByBarcode', barcode)
+  // ── MODE NORMAL (dari modal Tambah/Edit Produk) ──
+  // ✅ FIX: isi barcode field DULU, lalu satu kali callAPI (tidak duplikat)
   document.getElementById('produkBarcode').value = barcode;
+
   showLoading();
   callAPI('getProdukByBarcode', barcode)
     .then(result => {
       hideLoading();
       if (result.success) {
         const p = result.data;
-        // Auto-fill semua field dengan data yang sudah ada
+        // Produk sudah ada → switch ke mode Edit dan auto-fill semua field
         document.getElementById('modalProdukTitle').textContent = 'EDIT PRODUK';
         document.getElementById('editProdukId').value = p.id;
+        document.getElementById('produkBarcode').value = p.barcode;
         document.getElementById('produkNama').value = p.nama;
         document.getElementById('produkKategori').value = p.kategori || '';
         document.getElementById('produkSatuan').value = p.satuan || 'pcs';
@@ -1004,7 +1091,7 @@ function handleModalBarcode(barcode) {
         document.getElementById('produkBaris').value = p.baris || '';
         showToast('Produk ditemukan — data terisi otomatis', 'info');
       }
-      // Jika tidak ditemukan, barcode sudah terisi, field lain kosong — user isi manual
+      // Jika tidak ditemukan: barcode sudah terisi, field lain kosong untuk diisi manual
     })
     .catch(() => hideLoading());
 }
@@ -1017,5 +1104,17 @@ function openModal(id) {
 }
 function closeModal(id) {
   document.getElementById(id).classList.remove('show');
-  if (id === 'modalMiniScan') closeMiniScanner();
+  // Jika menutup modal scanner: stop Quagga langsung (tidak panggil closeMiniScanner
+  // agar tidak terjadi loop: closeModal → closeMiniScanner → closeModal → ...)
+  if (id === 'modalMiniScan') {
+    if (miniScannerRunning) {
+      Quagga.offDetected();
+      Quagga.stop();
+      miniScannerRunning = false;
+    }
+    const vp = document.getElementById('mini-scanner-viewport');
+    if (vp) vp.innerHTML = '';
+    const idle = document.getElementById('miniScanIdle');
+    if (idle) idle.style.display = 'block';
+  }
 }
