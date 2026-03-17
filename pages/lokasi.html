@@ -1,0 +1,45 @@
+<div class="page" id="page-lokasi">
+  <div class="page-header">
+    <div>
+      <div class="page-heading">Peta Rak</div>
+      <div class="page-subheading">8 Rak · 3 Lantai · 4 Baris per Lantai</div>
+    </div>
+    <button class="btn btn-outline btn-sm" onclick="loadLokasi()">↻ Refresh</button>
+  </div>
+
+  <!-- Legend -->
+  <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+      <div style="width:20px;height:20px;border-radius:4px;background:var(--accent-dim);border:1px solid rgba(249,115,22,0.4)"></div>
+      <span>Terisi</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+      <div style="width:20px;height:20px;border-radius:4px;background:var(--bg);border:1px solid var(--border)"></div>
+      <span>Kosong</span>
+    </div>
+  </div>
+
+  <div class="rak-grid" id="rakGrid">
+    <!-- Dynamically generated -->
+  </div>
+
+  <!-- Detail Panel -->
+  <div id="lokasiDetailPanel" style="display:none;margin-top:20px">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title" id="lokasiDetailTitle">Detail Lokasi</div>
+        <button class="btn btn-outline btn-sm" onclick="closeLokasiDetail()">✕ Tutup</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Barcode</th><th>Nama Produk</th><th>Jumlah</th><th>Last Update</th>
+            </tr>
+          </thead>
+          <tbody id="lokasiDetailTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

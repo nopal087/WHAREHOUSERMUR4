@@ -1,0 +1,40 @@
+<div class="page" id="page-riwayat">
+  <div class="page-header">
+    <div>
+      <div class="page-heading">Riwayat Transaksi</div>
+      <div class="page-subheading">Semua transaksi masuk dan keluar</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Semua Transaksi</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <select class="form-control" id="filterTipe" onchange="loadAllRiwayat()" style="width:auto">
+          <option value="">Semua Tipe</option>
+          <option value="MASUK">Masuk</option>
+          <option value="KELUAR">Keluar</option>
+        </select>
+        <button class="btn btn-outline btn-sm" onclick="loadAllRiwayat()">↻ Refresh</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Tipe</th>
+            <th>Barcode</th>
+            <th>Produk</th>
+            <th>Jumlah</th>
+            <th>Lokasi</th>
+            <th>Operator</th>
+            <th>Catatan</th>
+          </tr>
+        </thead>
+        <tbody id="riwayat-tbody">
+          <tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text3)">Memuat...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

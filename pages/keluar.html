@@ -1,0 +1,35 @@
+<div class="page" id="page-keluar">
+  <div class="page-header">
+    <div>
+      <div class="page-heading">Barang Keluar</div>
+      <div class="page-subheading">Riwayat pengiriman / pengeluaran barang</div>
+    </div>
+    <button class="btn btn-danger" onclick="showPage('scan', null);setTipeTransaksi('KELUAR')">
+      📷 Scan Keluar
+    </button>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Riwayat Barang Keluar</div>
+      <button class="btn btn-outline btn-sm" onclick="loadRiwayat('KELUAR')">↻ Refresh</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Barcode</th>
+            <th>Nama Produk</th>
+            <th>Jumlah</th>
+            <th>Lokasi</th>
+            <th>Catatan</th>
+            <th>Operator</th>
+          </tr>
+        </thead>
+        <tbody id="keluar-tbody">
+          <tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text3)">Memuat...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,35 @@
+<div class="page" id="page-masuk">
+  <div class="page-header">
+    <div>
+      <div class="page-heading">Barang Masuk</div>
+      <div class="page-subheading">Riwayat penerimaan barang</div>
+    </div>
+    <button class="btn btn-primary" onclick="showPage('scan', null);setTipeTransaksi('MASUK')">
+      📷 Scan Masuk
+    </button>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Riwayat Barang Masuk</div>
+      <button class="btn btn-outline btn-sm" onclick="loadRiwayat('MASUK')">↻ Refresh</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Barcode</th>
+            <th>Nama Produk</th>
+            <th>Jumlah</th>
+            <th>Lokasi</th>
+            <th>Catatan</th>
+            <th>Operator</th>
+          </tr>
+        </thead>
+        <tbody id="masuk-tbody">
+          <tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text3)">Memuat...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

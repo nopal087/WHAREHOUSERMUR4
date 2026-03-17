@@ -1,0 +1,44 @@
+<div class="page" id="page-produk">
+  <div class="page-header">
+    <div>
+      <div class="page-heading">Data Produk</div>
+      <div class="page-subheading">Manajemen master data produk</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-outline" onclick="scanInfoProduk()">
+        📷 Scan Info
+      </button>
+      <button class="btn btn-primary" onclick="openModalTambahProduk()">
+        + Tambah Produk
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Daftar Produk</div>
+      <div style="display:flex;gap:8px">
+        <input type="text" class="form-control table-search" id="searchProduk" placeholder="🔍 Cari produk..." oninput="filterProdukTable()">
+        <button class="btn btn-outline btn-sm" onclick="loadProduk()">↻</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Barcode</th>
+            <th>Nama Produk</th>
+            <th>Kategori</th>
+            <th>Stok</th>
+            <th>Satuan</th>
+            <th>Lokasi</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="produk-tbody">
+          <tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text3)">Memuat...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

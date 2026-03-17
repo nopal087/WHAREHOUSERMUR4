@@ -1,0 +1,56 @@
+<div class="page active" id="page-dashboard">
+  <div class="page-header">
+    <div>
+      <div class="page-heading">Dashboard</div>
+      <div class="page-subheading">Overview sistem manajemen gudang</div>
+    </div>
+    <button class="btn btn-outline btn-sm" onclick="loadDashboard()">↻ Refresh</button>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card orange">
+      <span class="stat-icon">📦</span>
+      <div class="stat-value" id="stat-total-produk">—</div>
+      <div class="stat-label">Total Produk</div>
+    </div>
+    <div class="stat-card green">
+      <span class="stat-icon">📥</span>
+      <div class="stat-value" id="stat-masuk">—</div>
+      <div class="stat-label">Masuk Hari Ini</div>
+    </div>
+    <div class="stat-card red">
+      <span class="stat-icon">📤</span>
+      <div class="stat-value" id="stat-keluar">—</div>
+      <div class="stat-label">Keluar Hari Ini</div>
+    </div>
+    <div class="stat-card blue">
+      <span class="stat-icon">⚠️</span>
+      <div class="stat-value" id="stat-stok-rendah">—</div>
+      <div class="stat-label">Stok Rendah</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Transaksi Terbaru</div>
+      <button class="btn btn-outline btn-sm" onclick="showPage('riwayat', null)">Lihat Semua →</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Waktu</th>
+            <th>Produk</th>
+            <th>Barcode</th>
+            <th>Tipe</th>
+            <th>Jumlah</th>
+            <th>Lokasi</th>
+          </tr>
+        </thead>
+        <tbody id="dashboard-transaksi-tbody">
+          <tr><td colspan="6" class="text-muted" style="text-align:center;padding:30px">Memuat data...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

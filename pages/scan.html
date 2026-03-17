@@ -1,0 +1,255 @@
+<div class="page" id="page-scan">
+  <div class="page-header">
+    <div>
+      <div class="page-heading">Scan Barang</div>
+      <div class="page-subheading">Gunakan kamera atau masukkan barcode manual</div>
+    </div>
+  </div>
+
+  <!-- Tipe Transaksi Tabs -->
+  <div class="tipe-tabs">
+    <button class="tipe-tab masuk active" id="tab-masuk" onclick="setTipeTransaksi('MASUK')">
+      📥 BARANG MASUK
+    </button>
+    <button class="tipe-tab keluar" id="tab-keluar" onclick="setTipeTransaksi('KELUAR')">
+      📤 BARANG KELUAR
+    </button>
+  </div>
+
+  <div class="scan-layout">
+
+    <!-- ===== KOLOM KIRI: SCANNER ===== -->
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header">
+          <div class="card-title">📷 Kamera Scanner</div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-success btn-sm" id="btnStartScan" onclick="startScanner()">▶ Mulai</button>
+            <button class="btn btn-outline btn-sm" id="btnStopScan" onclick="stopScanner()" disabled>■ Stop</button>
+          </div>
+        </div>
+        <div class="card-body" style="padding:12px">
+          <div class="scanner-box" id="scannerBox">
+            <div id="scanner-viewport"></div>
+            <div class="scanner-overlay" id="scannerOverlay" style="display:none"></div>
+            <div class="scan-indicator" id="scanIndicator">✓ TERDETEKSI</div>
+            <div class="scan-idle" id="scanIdle">
+              <span class="scan-idle-icon">📷</span>
+              <p>Tekan <strong>Mulai</strong> untuk mengaktifkan kamera</p>
+              <p style="font-size:12px;margin-top:6px;opacity:0.7">Mendukung barcode EAN-13, Code 128, Code 39</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">⌨️ Input Manual</div>
+        </div>
+        <div class="card-body">
+          <div class="form-group mb-0">
+            <label class="form-label">Kode Barcode</label>
+            <div class="input-with-btn">
+              <input type="text" class="form-control" id="manualBarcode"
+                placeholder="Scan atau ketik kode barcode..."
+                onkeypress="if(event.key==='Enter') processBarcode(this.value)">
+              <button class="btn btn-primary" onclick="processBarcode(document.getElementById('manualBarcode').value)">
+                Cari
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== KOLOM KANAN: HASIL ===== -->
+    <div>
+      <div class="card result-panel">
+        <div class="card-header">
+          <div class="card-title">Hasil Scan</div>
+          <span id="scan-tipe-badge" class="badge badge-green">MASUK</span>
+        </div>
+        <div class="card-body" style="padding:0">
+
+          <!-- EMPTY STATE -->
+          <div class="result-empty" id="resultEmpty" style="padding:50px 20px;text-align:center;color:var(--text3)">
+            <span style="font-size:52px;display:block;margin-bottom:12px;opacity:0.25">🔍</span>
+            <p style="font-size:14px;margin-bottom:6px">Arahkan kamera ke barcode</p>
+            <p style="font-size:12px;opacity:0.7">atau ketik kode barcode secara manual</p>
+          </div>
+
+          <!-- NOT FOUND STATE -->
+          <div id="resultNotFound" style="display:none">
+            <div style="background:var(--red-dim);border-bottom:1px solid rgba(220,38,38,0.15);padding:20px 24px;display:flex;align-items:center;gap:14px">
+              <div style="width:44px;height:44px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">❓</div>
+              <div>
+                <div style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--red);letter-spacing:0.5px">Produk Tidak Ditemukan</div>
+                <div style="font-size:12px;color:var(--text3);margin-top:3px">Barcode ini belum terdaftar di sistem</div>
+              </div>
+            </div>
+
+            <div style="padding:16px 24px;border-bottom:1px solid var(--border);background:#fafbfc">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);font-family:var(--font-display);font-weight:700;margin-bottom:6px">Kode Barcode Terscan</div>
+              <div style="font-family:var(--font-mono);font-size:18px;font-weight:700;color:var(--text);letter-spacing:2px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:10px 14px;display:inline-block" id="notFoundBarcode">—</div>
+            </div>
+
+            <div style="padding:20px 24px">
+              <div style="font-family:var(--font-display);font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:14px">
+                ✚ Daftarkan Produk Baru
+              </div>
+
+              <input type="hidden" id="quickAddBarcode">
+
+              <div class="form-row" style="grid-template-columns:1fr 1fr">
+                <div class="form-group">
+                  <label class="form-label">Nama Produk <span style="color:var(--red)">*</span></label>
+                  <input type="text" class="form-control" id="quickAddNama" placeholder="Nama produk...">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Kategori</label>
+                  <input type="text" class="form-control" id="quickAddKategori" placeholder="Elektronik, Mekanik...">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Satuan</label>
+                <select class="form-control" id="quickAddSatuan">
+                  <option value="pcs">Pcs</option>
+                  <option value="unit">Unit</option>
+                  <option value="box">Box</option>
+                  <option value="karton">Karton</option>
+                  <option value="kg">Kg</option>
+                  <option value="liter">Liter</option>
+                  <option value="meter">Meter</option>
+                  <option value="roll">Roll</option>
+                  <option value="lembar">Lembar</option>
+                </select>
+              </div>
+
+              <div style="display:flex;gap:10px;flex-wrap:wrap">
+                <button class="btn btn-primary" onclick="quickAddProduk()" style="flex:1">
+                  ✚ Lanjut Tambah Produk
+                </button>
+                <button class="btn btn-outline" onclick="document.getElementById('resultNotFound').style.display='none';document.getElementById('resultEmpty').style.display='block';document.getElementById('manualBarcode').value=''">
+                  ✕ Batal
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- FOUND STATE -->
+          <div class="result-found" id="resultFound">
+
+            <!-- Header produk -->
+            <div style="padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+              <div style="min-width:0;flex:1">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+                  <span id="resStokBadge" class="badge badge-green">TERSEDIA</span>
+                  <span class="badge badge-blue" id="resKategori">—</span>
+                </div>
+                <div class="result-name" id="resNama">—</div>
+                <div style="display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap">
+                  <span style="font-family:var(--font-mono);font-size:12px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:2px 8px" id="resBarcode">—</span>
+                  <span style="font-size:12px;color:var(--text3)" id="resDeskripsi">—</span>
+                </div>
+              </div>
+              <button class="btn btn-outline btn-sm" onclick="editProdukFromScan()" style="flex-shrink:0" title="Edit produk">✏️</button>
+            </div>
+
+            <!-- Stok & Satuan -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border)">
+              <div style="padding:16px 24px;border-right:1px solid var(--border)">
+                <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);font-family:var(--font-display);font-weight:700;margin-bottom:4px">Stok Total</div>
+                <div style="font-family:var(--font-display);font-size:34px;font-weight:800;line-height:1" id="resStok">—</div>
+              </div>
+              <div style="padding:16px 24px">
+                <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);font-family:var(--font-display);font-weight:700;margin-bottom:4px">Satuan</div>
+                <div style="font-family:var(--font-display);font-size:34px;font-weight:800;line-height:1" id="resSatuan">—</div>
+              </div>
+            </div>
+
+            <!-- Tabel Lokasi Multi-Rak -->
+            <div style="border-bottom:1px solid var(--border)">
+              <div style="padding:12px 24px 8px;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);font-family:var(--font-display);font-weight:700">
+                📍 Lokasi Penyimpanan
+              </div>
+              <div id="resLokasiContainer" style="padding:0 0 4px"></div>
+            </div>
+
+            <!-- Form Transaksi -->
+            <div style="padding:20px 24px">
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);font-family:var(--font-display);font-weight:700;margin-bottom:14px">
+                ⚡ Form Transaksi
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Jumlah</label>
+                  <input type="number" class="form-control" id="txJumlah" value="1" min="1">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Catatan</label>
+                  <input type="text" class="form-control" id="txCatatan" placeholder="Opsional...">
+                </div>
+              </div>
+
+              <div id="lokasiMasukSection">
+                <div style="background:var(--green-dim);border:1px solid rgba(22,163,74,0.2);border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--green);font-weight:600">
+                  📍 Tentukan lokasi penempatan barang masuk
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Rak</label>
+                    <select class="form-control" id="txRak">
+                      <option value="">Pilih Rak</option>
+                      <option value="1">Rak 1</option>
+                      <option value="2">Rak 2</option>
+                      <option value="3">Rak 3</option>
+                      <option value="4">Rak 4</option>
+                      <option value="5">Rak 5</option>
+                      <option value="6">Rak 6</option>
+                      <option value="7">Rak 7</option>
+                      <option value="8">Rak 8</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Lantai</label>
+                    <select class="form-control" id="txLantai">
+                      <option value="">Pilih Lantai</option>
+                      <option value="1">Lantai 1</option>
+                      <option value="2">Lantai 2</option>
+                      <option value="3">Lantai 3</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Baris</label>
+                    <select class="form-control" id="txBaris">
+                      <option value="">Pilih Baris</option>
+                      <option value="1">Baris 1</option>
+                      <option value="2">Baris 2</option>
+                      <option value="3">Baris 3</option>
+                      <option value="4">Baris 4</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="action-buttons">
+                <button class="btn btn-success" id="btnTransaksi" onclick="submitTransaksi()">
+                  ✓ Konfirmasi Transaksi
+                </button>
+                <button class="btn btn-outline" onclick="document.getElementById('resultFound').classList.remove('show');document.getElementById('resultEmpty').style.display='block';document.getElementById('manualBarcode').value='';currentScanResult=null;">
+                  ✕ Reset
+                </button>
+              </div>
+            </div>
+
+          </div>
+          <!-- END FOUND STATE -->
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
