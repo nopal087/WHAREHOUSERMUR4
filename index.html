@@ -1,115 +1,139 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WMS — Sistem Manajemen Gudang</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@300;400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
-  
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-  
-  <link rel="stylesheet" href="css/styles.css">
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WMS RMU RO4 — Sistem Manajemen Gudang</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@300;400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
 
-<div class="app-wrapper">
-  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <script
+      src="https://unpkg.com/html5-qrcode"
+      type="text/javascript"
+    ></script>
 
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-mark">⬡ WMS</div>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <div class="app-wrapper">
+      <div
+        class="sidebar-overlay"
+        id="sidebarOverlay"
+        onclick="closeSidebar()"
+      ></div>
+
+      <aside class="sidebar" id="sidebar">
+        <!-- <div class="sidebar-logo">
+      <div class="logo-mark">⬡ WMS RMU RO 4</div>
       <div class="logo-sub">Warehouse Management</div>
+    </div> -->
+
+        <div class="sidebar-logo">
+          <div class="logo-wrapper">
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Logo_KAI_Services.svg/250px-Logo_KAI_Services.svg.png"
+              alt="KAI Services Logo"
+              class="main-logo"
+            />
+          </div>
+          <div class="logo-sub">Warehouse Management RMU RO 4</div>
+        </div>
+        <nav class="sidebar-nav">
+          <div class="nav-section-label">Utama</div>
+          <div class="nav-item active" onclick="showPage('dashboard', this)">
+            <span class="nav-icon">📊</span> Dashboard
+          </div>
+          <div class="nav-item" onclick="showPage('scan', this)">
+            <span class="nav-icon">📷</span> Scan Barang
+          </div>
+
+          <div class="nav-section-label">Transaksi</div>
+          <div class="nav-item" onclick="showPage('masuk', this)">
+            <span class="nav-icon">📦</span> Barang Masuk
+          </div>
+          <div class="nav-item" onclick="showPage('keluar', this)">
+            <span class="nav-icon">🚚</span> Barang Keluar
+          </div>
+          <div class="nav-item" onclick="showPage('riwayat', this)">
+            <span class="nav-icon">📋</span> Riwayat Transaksi
+          </div>
+
+          <div class="nav-section-label">Manajemen</div>
+          <div class="nav-item" onclick="showPage('produk', this)">
+            <span class="nav-icon">🏷️</span> Data Produk
+          </div>
+          <div class="nav-item" onclick="showPage('lokasi', this)">
+            <span class="nav-icon">🗺️</span> Peta Rak
+          </div>
+        </nav>
+        <div class="sidebar-footer">
+          <strong id="currentUserName">Admin Gudang</strong>
+          <span id="currentDate">—</span>
+        </div>
+      </aside>
+
+      <div class="main-area">
+        <header class="topbar">
+          <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+          <div class="topbar-title" id="topbarTitle">DASHBOARD</div>
+          <div class="topbar-actions">
+            <div class="topbar-time" id="topbarTime">00:00:00</div>
+            <button
+              class="btn btn-primary btn-sm"
+              onclick="showPage('scan', null)"
+            >
+              <span>📷</span> Scan
+            </button>
+          </div>
+        </header>
+
+        <main class="content-area" id="contentArea">
+          <div data-include="pages/dashboard.html"></div>
+          <div data-include="pages/scan.html"></div>
+          <div data-include="pages/masuk.html"></div>
+          <div data-include="pages/keluar.html"></div>
+          <div data-include="pages/riwayat.html"></div>
+          <div data-include="pages/produk.html"></div>
+          <div data-include="pages/lokasi.html"></div>
+        </main>
+      </div>
     </div>
-    <nav class="sidebar-nav">
-      <div class="nav-section-label">Utama</div>
-      <div class="nav-item active" onclick="showPage('dashboard', this)">
-        <span class="nav-icon">📊</span> Dashboard
-      </div>
-      <div class="nav-item" onclick="showPage('scan', this)">
-        <span class="nav-icon">📷</span> Scan Barang
-      </div>
-      
-      <div class="nav-section-label">Transaksi</div>
-      <div class="nav-item" onclick="showPage('masuk', this)">
-        <span class="nav-icon">📦</span> Barang Masuk
-      </div>
-      <div class="nav-item" onclick="showPage('keluar', this)">
-        <span class="nav-icon">🚚</span> Barang Keluar
-      </div>
-      <div class="nav-item" onclick="showPage('riwayat', this)">
-        <span class="nav-icon">📋</span> Riwayat Transaksi
-      </div>
 
-      <div class="nav-section-label">Manajemen</div>
-      <div class="nav-item" onclick="showPage('produk', this)">
-        <span class="nav-icon">🏷️</span> Data Produk
-      </div>
-      <div class="nav-item" onclick="showPage('lokasi', this)">
-        <span class="nav-icon">🗺️</span> Peta Rak
-      </div>
-    </nav>
-    <div class="sidebar-footer">
-      <strong id="currentUserName">Admin Gudang</strong>
-      <span id="currentDate">—</span>
-    </div>
-  </aside>
+    <div data-include="pages/modals.html"></div>
 
-  <div class="main-area">
-    <header class="topbar">
-      <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
-      <div class="topbar-title" id="topbarTitle">DASHBOARD</div>
-      <div class="topbar-actions">
-        <div class="topbar-time" id="topbarTime">00:00:00</div>
-        <button class="btn btn-primary btn-sm" onclick="showPage('scan', null)">
-          <span>📷</span> Scan
-        </button>
-      </div>
-    </header>
+    <script src="js/app.js"></script>
 
-    <main class="content-area" id="contentArea">
-      <div data-include="pages/dashboard.html"></div>
-      <div data-include="pages/scan.html"></div>
-      <div data-include="pages/masuk.html"></div>
-      <div data-include="pages/keluar.html"></div>
-      <div data-include="pages/riwayat.html"></div>
-      <div data-include="pages/produk.html"></div>
-      <div data-include="pages/lokasi.html"></div>
-    </main>
-  </div>
-</div>
-
-<div data-include="pages/modals.html"></div>
-
-<script src="js/app.js"></script>
-
-<script>
-  // =============================================
-  // INCLUDE SYSTEM
-  // Memuat file HTML parsial dan menyuntikkannya ke DOM,
-  // lalu memanggil initApp() setelah semua selesai dimuat.
-  // =============================================
-  async function processIncludes() {
-    const elements = [...document.querySelectorAll('[data-include]')];
-    await Promise.all(elements.map(async el => {
-      const file = el.getAttribute('data-include');
-      try {
-        const res = await fetch(file);
-        const html = await res.text();
-        const temp = document.createElement('template');
-        temp.innerHTML = html;
-        el.replaceWith(temp.content);
-      } catch (e) {
-        console.error('Gagal memuat include:', file, e);
+    <script>
+      // =============================================
+      // INCLUDE SYSTEM
+      // Memuat file HTML parsial dan menyuntikkannya ke DOM,
+      // lalu memanggil initApp() setelah semua selesai dimuat.
+      // =============================================
+      async function processIncludes() {
+        const elements = [...document.querySelectorAll("[data-include]")];
+        await Promise.all(
+          elements.map(async (el) => {
+            const file = el.getAttribute("data-include");
+            try {
+              const res = await fetch(file);
+              const html = await res.text();
+              const temp = document.createElement("template");
+              temp.innerHTML = html;
+              el.replaceWith(temp.content);
+            } catch (e) {
+              console.error("Gagal memuat include:", file, e);
+            }
+          })
+        );
       }
-    }));
-  }
 
-  document.addEventListener('DOMContentLoaded', async function () {
-    await processIncludes();
-    initApp(); // dari js/app.js — dipanggil setelah semua HTML tersedia
-  });
-</script>
-
-</body>
+      document.addEventListener("DOMContentLoaded", async function () {
+        await processIncludes();
+        initApp(); // dari js/app.js — dipanggil setelah semua HTML tersedia
+      });
+    </script>
+  </body>
 </html>

@@ -509,15 +509,43 @@ function showTambahProduk() {
   }
 }
 
+// function quickAddProduk() {
+//   const nama = document.getElementById('quickAddNama').value.trim();
+//   const barcode = document.getElementById('quickAddBarcode').value.trim();
+//   const kategori = document.getElementById('quickAddKategori').value.trim();
+//   const satuan = document.getElementById('quickAddSatuan').value;
+//   if (!nama) { showToast('Nama produk wajib diisi!', 'error'); return; }
+//   // Isi modal produk lalu buka
+//   document.getElementById('modalProdukTitle').textContent = 'TAMBAH PRODUK';
+//   document.getElementById('editProdukId').value = '';
+//   document.getElementById('produkBarcode').value = barcode;
+//   document.getElementById('produkNama').value = nama;
+//   document.getElementById('produkKategori').value = kategori;
+//   document.getElementById('produkSatuan').value = satuan;
+//   document.getElementById('produkStok').value = '0';
+//   document.getElementById('produkDeskripsi').value = '';
+//   document.getElementById('produkRak').value = '';
+//   document.getElementById('produkLantai').value = '';
+//   document.getElementById('produkBaris').value = '';
+//   openModal('modalProduk');
+// }
+
 function quickAddProduk() {
+  const operator = document.getElementById('quickAddOperator').value.trim(); // Ambil Operator
   const nama = document.getElementById('quickAddNama').value.trim();
   const barcode = document.getElementById('quickAddBarcode').value.trim();
   const kategori = document.getElementById('quickAddKategori').value.trim();
   const satuan = document.getElementById('quickAddSatuan').value;
+  
+  if (!operator) { showToast('Nama Operator wajib diisi!', 'error'); return; }
   if (!nama) { showToast('Nama produk wajib diisi!', 'error'); return; }
-  // Isi modal produk lalu buka
+  
   document.getElementById('modalProdukTitle').textContent = 'TAMBAH PRODUK';
   document.getElementById('editProdukId').value = '';
+  
+  // Set nilai ke dalam modal
+  if(document.getElementById('produkOperator')) document.getElementById('produkOperator').value = operator;
+  
   document.getElementById('produkBarcode').value = barcode;
   document.getElementById('produkNama').value = nama;
   document.getElementById('produkKategori').value = kategori;
@@ -527,7 +555,44 @@ function quickAddProduk() {
   document.getElementById('produkRak').value = '';
   document.getElementById('produkLantai').value = '';
   document.getElementById('produkBaris').value = '';
+  
   openModal('modalProduk');
+}
+
+function saveProduk() {
+  const barcode = document.getElementById('produkBarcode').value.trim();
+  const nama = document.getElementById('produkNama').value.trim();
+  const operator = document.getElementById('produkOperator') ? document.getElementById('produkOperator').value.trim() : 'Admin';
+  
+  if (!barcode || !nama) { showToast('Barcode dan nama produk wajib diisi!', 'error'); return; }
+  if (!operator) { showToast('Nama Operator wajib diisi!', 'error'); return; }
+
+  const id = document.getElementById('editProdukId').value;
+  const data = {
+    id, barcode, nama,
+    kategori: document.getElementById('produkKategori').value,
+    satuan: document.getElementById('produkSatuan').value,
+    stok: parseInt(document.getElementById('produkStok').value) || 0,
+    deskripsi: document.getElementById('produkDeskripsi').value,
+    rak: document.getElementById('produkRak').value,
+    lantai: document.getElementById('produkLantai').value,
+    baris: document.getElementById('produkBaris').value,
+    operator: operator // <--- Kirim operator ke backend
+  };
+
+  showLoading();
+  const fn = id ? 'editProduk' : 'tambahProduk'; 
+  
+  callAPI(fn, data)
+    .then(result => {
+      hideLoading();
+      if (result.success) {
+        showToast(result.message, 'success');
+        closeModal('modalProduk');
+        loadProduk();
+      } else { showToast('Gagal: ' + result.message, 'error'); }
+    })
+    .catch(err => { hideLoading(); showToast('Error: ' + err, 'error'); });
 }
 
 // =============================================
@@ -603,6 +668,7 @@ function setTipeTransaksi(tipe) {
 // =============================================
 // TRANSAKSI
 // =============================================
+
 // function submitTransaksi() {
 //   if (!currentScanResult) { showToast('Scan atau cari produk terlebih dahulu', 'error'); return; }
 //   const jumlah = parseInt(document.getElementById('txJumlah').value);
@@ -612,8 +678,9 @@ function setTipeTransaksi(tipe) {
 //   const lantai = document.getElementById('txLantai').value;
 //   const baris = document.getElementById('txBaris').value;
 
-//   if (currentTipeTransaksi === 'MASUK' && (!rak || !lantai || !baris)) {
-//     showToast('Pilih lokasi rak, lantai, dan baris untuk barang masuk', 'error');
+//   // WAJIBKAN lokasi untuk MASUK dan TAMBAH
+//   if ((currentTipeTransaksi === 'MASUK' || currentTipeTransaksi === 'TAMBAH') && (!rak || !lantai || !baris)) {
+//     showToast('Pilih lokasi rak, lantai, dan baris', 'error');
 //     return;
 //   }
 //   if (currentTipeTransaksi === 'KELUAR' && jumlah > currentScanResult.stok) {
@@ -655,6 +722,11 @@ function setTipeTransaksi(tipe) {
 
 function submitTransaksi() {
   if (!currentScanResult) { showToast('Scan atau cari produk terlebih dahulu', 'error'); return; }
+  
+  // Validasi Nama Operator
+  const operator = document.getElementById('txOperator').value.trim();
+  if (!operator) { showToast('Nama Operator wajib diisi!', 'error'); return; }
+
   const jumlah = parseInt(document.getElementById('txJumlah').value);
   if (!jumlah || jumlah <= 0) { showToast('Masukkan jumlah yang valid', 'error'); return; }
 
@@ -662,7 +734,6 @@ function submitTransaksi() {
   const lantai = document.getElementById('txLantai').value;
   const baris = document.getElementById('txBaris').value;
 
-  // WAJIBKAN lokasi untuk MASUK dan TAMBAH
   if ((currentTipeTransaksi === 'MASUK' || currentTipeTransaksi === 'TAMBAH') && (!rak || !lantai || !baris)) {
     showToast('Pilih lokasi rak, lantai, dan baris', 'error');
     return;
@@ -679,7 +750,7 @@ function submitTransaksi() {
     jumlah: jumlah,
     rak: rak, lantai: lantai, baris: baris,
     catatan: document.getElementById('txCatatan').value,
-    operator: 'Admin'
+    operator: operator // Mengambil nama dari input, bukan lagi 'Admin'
   };
 
   callAPI('catatTransaksi', data)
@@ -688,12 +759,16 @@ function submitTransaksi() {
       if (result.success) {
         showToast('Transaksi berhasil dicatat!', 'success');
         playBeep();
+        
         // Reset form
         document.getElementById('txJumlah').value = 1;
         document.getElementById('txCatatan').value = '';
         document.getElementById('txRak').value = '';
         document.getElementById('txLantai').value = '';
         document.getElementById('txBaris').value = '';
+        // Catatan: txOperator sengaja TIDAK di-reset agar user 
+        // tidak perlu mengetik namanya berulang kali saat scan barang berturut-turut.
+        
         document.getElementById('resultFound').classList.remove('show');
         document.getElementById('resultEmpty').style.display = 'block';
         document.getElementById('manualBarcode').value = '';
@@ -826,6 +901,7 @@ function openModalTambahProduk() {
   document.getElementById('produkRak').value = '';
   document.getElementById('produkLantai').value = '';
   document.getElementById('produkBaris').value = '';
+  if(document.getElementById('produkOperator')) document.getElementById('produkOperator').value = '';
   openModal('modalProduk');
 }
 
@@ -843,6 +919,7 @@ function editProdukById(id) {
   document.getElementById('produkRak').value = p.rak || '';
   document.getElementById('produkLantai').value = p.lantai || '';
   document.getElementById('produkBaris').value = p.baris || '';
+ if(document.getElementById('produkOperator')) document.getElementById('produkOperator').value = '';
   openModal('modalProduk');
 }
 

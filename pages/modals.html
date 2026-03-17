@@ -1,4 +1,3 @@
-<!-- Modal Tambah/Edit Produk -->
 <div class="modal-backdrop" id="modalProduk">
   <div class="modal">
     <div class="modal-header">
@@ -7,6 +6,12 @@
     </div>
     <div class="modal-body">
       <input type="hidden" id="editProdukId">
+
+      <div class="form-group" style="margin-bottom: 12px;">
+        <label class="form-label" style="font-weight: 600;">Operator (Pendaftar) <span style="color:var(--red)">*</span></label>
+        <input type="text" class="form-control" id="produkOperator" placeholder="Nama Anda...">
+      </div>
+
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Kode Barcode *</label>
@@ -96,7 +101,6 @@
   </div>
 </div>
 
-<!-- Modal Konfirmasi Hapus -->
 <div class="modal-backdrop" id="modalHapus">
   <div class="modal" style="max-width:400px">
     <div class="modal-header">
@@ -115,7 +119,6 @@
   </div>
 </div>
 
-<!-- Mini Scanner Modal (untuk modal produk) -->
 <div class="modal-backdrop" id="modalMiniScan">
   <div class="modal" style="max-width:480px">
     <div class="modal-header">
@@ -142,10 +145,8 @@
   </div>
 </div>
 
-<!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
 
-<!-- Loading Overlay -->
 <div class="loading-overlay" id="loadingOverlay">
   <div class="spinner"></div>
 </div>
