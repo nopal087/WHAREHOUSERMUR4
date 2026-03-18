@@ -1371,6 +1371,84 @@ function useMiniBarcode() {
 // =============================================
 // HANDLE BARCODE DARI MINI SCANNER
 // =============================================
+// function handleModalBarcode(barcode) {
+//   // ── MODE SCAN INFO (dari halaman Data Produk) ──
+//   if (window._scanInfoMode) {
+//     window._scanInfoMode = false;
+//     showLoading();
+//     Promise.all([
+//       callAPI('getProdukByBarcode', barcode),
+//       callAPI('getSemuaLokasi')
+//     ]).then(([produkResult, lokasiResult]) => {
+//       hideLoading();
+//       const semuaLokasi = lokasiResult.data || [];
+
+//       if (produkResult.success) {
+//         const p = produkResult.data;
+//         const lokasiProduk = semuaLokasi.filter(l => String(l.barcode) === String(barcode));
+//         const totalStok = lokasiProduk.length > 0
+//           ? lokasiProduk.reduce((sum, l) => sum + (parseInt(l.jumlah) || 0), 0)
+//           : p.stok;
+//         const lokasiStr = lokasiProduk.length > 0
+//           ? lokasiProduk.map(l => `R${l.rak} L${l.lantai} B${l.baris} (${l.jumlah})`).join(' · ')
+//           : 'Belum ada lokasi';
+
+//         setTimeout(() => {
+//           if (confirm(
+//             `✅ Produk Ditemukan\n\n` +
+//             `Nama   : ${p.nama}\n` +
+//             `Stok   : ${totalStok} ${p.satuan}\n` +
+//             `Lokasi : ${lokasiStr}\n\n` +
+//             `Buka untuk diedit?`
+//           )) {
+//             editProdukById(p.id);
+//           }
+//         }, 100);
+
+//       } else {
+//         setTimeout(() => {
+//           if (confirm(`❓ Barcode ${barcode} belum terdaftar.\nTambah sebagai produk baru?`)) {
+//             openModalTambahProduk();
+//             document.getElementById('produkBarcode').value = barcode;
+//           }
+//         }, 100);
+//       }
+//     }).catch(() => hideLoading());
+//     return; // stop, jangan lanjut ke mode normal
+//   }
+
+//   // ── MODE NORMAL (dari modal Tambah/Edit Produk) ──
+//   document.getElementById('produkBarcode').value = barcode;
+
+//   showLoading();
+//   callAPI('getProdukByBarcode', barcode)
+//     .then(result => {
+//       hideLoading();
+//       if (result.success) {
+//         const p = result.data;
+//         // Produk sudah ada → switch ke mode Edit dan auto-fill semua field
+//         document.getElementById('modalProdukTitle').textContent = 'EDIT PRODUK';
+//         document.getElementById('editProdukId').value = p.id;
+//         document.getElementById('produkBarcode').value = p.barcode;
+//         document.getElementById('produkNama').value = p.nama;
+//         document.getElementById('produkKategori').value = p.kategori || '';
+//         document.getElementById('produkSatuan').value = p.satuan || 'pcs';
+//         document.getElementById('produkStok').value = p.stok || 0;
+//         document.getElementById('produkDeskripsi').value = p.deskripsi || '';
+//         document.getElementById('produkRak').value = p.rak || '';
+//         document.getElementById('produkLantai').value = p.lantai || '';
+//         document.getElementById('produkBaris').value = p.baris || '';
+//         showToast('Produk ditemukan — data terisi otomatis', 'info');
+//       }
+//     })
+//     .catch(() => hideLoading());
+// }
+// =============================================
+// HANDLE BARCODE DARI MINI SCANNER
+// =============================================
+// =============================================
+// HANDLE BARCODE DARI MINI SCANNER
+// =============================================
 function handleModalBarcode(barcode) {
   // ── MODE SCAN INFO (dari halaman Data Produk) ──
   if (window._scanInfoMode) {
@@ -1389,32 +1467,64 @@ function handleModalBarcode(barcode) {
         const totalStok = lokasiProduk.length > 0
           ? lokasiProduk.reduce((sum, l) => sum + (parseInt(l.jumlah) || 0), 0)
           : p.stok;
-        const lokasiStr = lokasiProduk.length > 0
-          ? lokasiProduk.map(l => `R${l.rak} L${l.lantai} B${l.baris} (${l.jumlah})`).join(' · ')
-          : 'Belum ada lokasi';
 
-        setTimeout(() => {
-          if (confirm(
-            `✅ Produk Ditemukan\n\n` +
-            `Nama   : ${p.nama}\n` +
-            `Stok   : ${totalStok} ${p.satuan}\n` +
-            `Lokasi : ${lokasiStr}\n\n` +
-            `Buka untuk diedit?`
-          )) {
-            editProdukById(p.id);
-          }
-        }, 100);
+        // Suntikkan data ke Modal Detail Produk
+        document.getElementById('detailNama').textContent = p.nama;
+        document.getElementById('detailBarcode').textContent = p.barcode;
+        document.getElementById('detailKategori').textContent = p.kategori || 'Umum';
+        
+        const stokEl = document.getElementById('detailStok');
+        stokEl.textContent = totalStok;
+        // Warnai stok
+        stokEl.style.color = totalStok <= 0 ? 'var(--red)' : (totalStok <= 5 ? '#eab308' : 'var(--green)');
+        
+        document.getElementById('detailSatuan').textContent = p.satuan || 'pcs';
+
+        // Render tabel multi-lokasi di dalam modal
+        const lokasiContainer = document.getElementById('detailLokasiContainer');
+        if (lokasiProduk.length === 0) {
+          lokasiContainer.innerHTML = `<div style="text-align:center;padding:16px;color:var(--text3);font-size:13px;border:1px dashed var(--border);border-radius:8px;">Belum ada data lokasi rak</div>`;
+        } else {
+          lokasiContainer.innerHTML = `
+            <table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+              <thead style="background:#eef0f6">
+                <tr>
+                  <th style="padding:10px;text-align:left;color:var(--text2);font-family:var(--font-display);letter-spacing:1px;">RAK</th>
+                  <th style="padding:10px;text-align:left;color:var(--text2);font-family:var(--font-display);letter-spacing:1px;">LANTAI</th>
+                  <th style="padding:10px;text-align:left;color:var(--text2);font-family:var(--font-display);letter-spacing:1px;">BARIS</th>
+                  <th style="padding:10px;text-align:right;color:var(--text2);font-family:var(--font-display);letter-spacing:1px;">JUMLAH</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${lokasiProduk.map((l, i) => `
+                  <tr style="border-top:1px solid var(--border); ${i % 2 === 0 ? 'background:#fff;' : 'background:#fafbfc;'}">
+                    <td style="padding:10px;"><span style="background:var(--accent);color:#fff;border-radius:4px;padding:2px 6px;font-weight:700;">R${l.rak}</span></td>
+                    <td style="padding:10px;font-weight:600;">L${l.lantai}</td>
+                    <td style="padding:10px;font-weight:600;">B${l.baris}</td>
+                    <td style="padding:10px;text-align:right;font-family:var(--font-mono);font-weight:700;color:var(--accent);font-size:14px;">${l.jumlah}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>`;
+        }
+
+        // Atur aksi tombol "Edit Data Produk" di modal
+        document.getElementById('btnEditDetailProduk').onclick = function() {
+          closeModal('modalDetailProduk');
+          setTimeout(() => { editProdukById(p.id); }, 300); // Buka form edit
+        };
+
+        // Tampilkan Modal Detail
+        openModal('modalDetailProduk');
 
       } else {
-        setTimeout(() => {
-          if (confirm(`❓ Barcode ${barcode} belum terdaftar.\nTambah sebagai produk baru?`)) {
-            openModalTambahProduk();
-            document.getElementById('produkBarcode').value = barcode;
-          }
-        }, 100);
+        // [PERBAIKAN] Panggil modal kustom saat produk tidak ditemukan
+        document.getElementById('notFoundScanInfoBarcodeText').textContent = barcode;
+        document.getElementById('notFoundScanInfoBarcodeVal').value = barcode;
+        openModal('modalNotFoundScanInfo');
       }
     }).catch(() => hideLoading());
-    return; // stop, jangan lanjut ke mode normal
+    return; 
   }
 
   // ── MODE NORMAL (dari modal Tambah/Edit Produk) ──
@@ -1426,7 +1536,6 @@ function handleModalBarcode(barcode) {
       hideLoading();
       if (result.success) {
         const p = result.data;
-        // Produk sudah ada → switch ke mode Edit dan auto-fill semua field
         document.getElementById('modalProdukTitle').textContent = 'EDIT PRODUK';
         document.getElementById('editProdukId').value = p.id;
         document.getElementById('produkBarcode').value = p.barcode;
@@ -1438,10 +1547,31 @@ function handleModalBarcode(barcode) {
         document.getElementById('produkRak').value = p.rak || '';
         document.getElementById('produkLantai').value = p.lantai || '';
         document.getElementById('produkBaris').value = p.baris || '';
+        
+        // Auto-fill operator jika elemennya ada
+        if (document.getElementById('produkOperator') && p.operator) {
+          document.getElementById('produkOperator').value = p.operator !== '—' ? p.operator : '';
+        }
+        
         showToast('Produk ditemukan — data terisi otomatis', 'info');
       }
     })
     .catch(() => hideLoading());
+}
+
+// =============================================
+// FUNGSI LANJUTAN DARI MODAL "TIDAK DITEMUKAN"
+// =============================================
+function proceedToTambahProduk() {
+  // Ambil barcode dari input hidden di modal
+  const barcode = document.getElementById('notFoundScanInfoBarcodeVal').value;
+  closeModal('modalNotFoundScanInfo');
+  
+  // Tunggu animasi pop-up tertutup sebentar, lalu buka form tambah produk
+  setTimeout(() => {
+    openModalTambahProduk();
+    document.getElementById('produkBarcode').value = barcode;
+  }, 300);
 }
 
 // =============================================
