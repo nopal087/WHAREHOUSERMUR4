@@ -16,6 +16,51 @@
     ></script>
 
     <link rel="stylesheet" href="css/styles.css" />
+
+    <style>
+      /* Tombol Scan Melayang (Sembunyi di Laptop/PC) */
+      .mobile-fab-container {
+        display: none;
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 990; /* Selalu di atas tapi di bawah modal/loading */
+      }
+
+      .mobile-fab {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 28px;
+        border-radius: 50px;
+        box-shadow: 0 8px 24px rgba(234, 108, 0, 0.4); /* Bayangan oranye */
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 15px;
+        letter-spacing: 1px;
+        background: var(--accent); /* Warna utama */
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        transition: transform 0.2s;
+      }
+
+      .mobile-fab:active {
+        transform: translateX(-50%) scale(0.95);
+      }
+
+      /* Hanya muncul di layar HP (lebar maksimal 768px) */
+      @media (max-width: 768px) {
+        .mobile-fab-container {
+          display: flex;
+        }
+        /* Beri ruang ekstra di bawah konten agar tidak tertutup tombol */
+        .content-area {
+          padding-bottom: 90px !important;
+        }
+      }
+    </style>
   </head>
   <body>
     <div class="app-wrapper">
@@ -136,5 +181,12 @@
         initApp();
       });
     </script>
+
+    <div class="mobile-fab-container">
+      <button class="mobile-fab" onclick="showPage('scan', null)">
+        <span style="font-size: 22px">📷</span>
+        <span>SCAN BARANG</span>
+      </button>
+    </div>
   </body>
 </html>
