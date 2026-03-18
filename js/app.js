@@ -1620,29 +1620,46 @@ function saveEditStokLokasi() {
     jumlah: jumlah
   };
 
+  // Ubah tombol jadi "Menyimpan..." agar user tahu sedang proses
+  const btn = document.querySelector('#modalEditStokLokasi .btn-primary');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '⏳ Menyimpan...';
+  btn.disabled = true;
+  btn.style.opacity = '0.7';
+
   showLoading();
+
   callAPI('editStokLokasi', data)
     .then(res => {
+      // Kembalikan tombol ke semula
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+      btn.style.opacity = '1';
       hideLoading();
+
       if(res.success) {
         showToast(res.message, 'success');
         closeModal('modalEditStokLokasi');
         
-        // 1. Refresh Modal Detail (agar tabel rak di pop-up terupdate)
+        // Refresh Modal Detail
         window._scanInfoMode = true; 
         handleModalBarcode(data.barcode); 
         
-        // 2. [PERBAIKAN] Refresh Tabel Data Produk di latar belakang!
+        // Refresh Tabel Utama
         if (currentPage === 'produk') {
           loadProduk();
         }
-        
       } else {
         showToast('Gagal: ' + res.message, 'error');
       }
-    }).catch(err => { hideLoading(); showToast('Error: '+err, 'error'); });
+    }).catch(err => { 
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      hideLoading(); 
+      showToast('Error: '+err, 'error'); 
+    });
 }
-
 // =============================================
 // FUNGSI LANJUTAN DARI MODAL "TIDAK DITEMUKAN"
 // =============================================
