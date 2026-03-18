@@ -241,6 +241,24 @@
   </div>
 </div>
 
+<div class="modal-backdrop" id="modalQuickScanChoice" style="z-index: 10000;">
+  <div class="modal" style="max-width:320px">
+    <div class="modal-header">
+      <div class="modal-title">⚡ QUICK SCAN</div>
+      <button class="modal-close" onclick="closeModal('modalQuickScanChoice')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:20px">
+      <p style="text-align:center; font-size:13px; color:var(--text3); margin-bottom:16px;">Pilih jenis transaksi yang ingin dilakukan:</p>
+      
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <button class="btn btn-success" style="padding:14px; font-size:15px; border-radius:10px;" onclick="startQuickScan('MASUK')">📥 BARANG MASUK</button>
+        <button class="btn btn-danger" style="padding:14px; font-size:15px; border-radius:10px;" onclick="startQuickScan('KELUAR')">📤 BARANG KELUAR</button>
+        <button class="btn btn-primary" style="padding:14px; font-size:15px; border-radius:10px;" onclick="startQuickScan('TAMBAH')">➕ TAMBAH DATA BARU</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="toast-container" id="toastContainer"></div>
 
 <div class="loading-overlay" id="loadingOverlay" style="z-index: 99999;">

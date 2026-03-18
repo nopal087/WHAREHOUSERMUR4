@@ -1497,12 +1497,18 @@ function handleModalBarcode(barcode) {
     // Pindah ke menu utama "Scan Barang"
     showPage('scan', null); 
     
+    // [PERBAIKAN] Set tipe transaksi sesuai pilihan user di awal!
+    if (window._quickScanTargetTipe) {
+      setTipeTransaksi(window._quickScanTargetTipe);
+    }
+    
     // Isi input manual dan langsung proses pencarian barcodenya
     document.getElementById('manualBarcode').value = barcode;
     
     // Beri jeda 300ms agar halaman berganti dulu, baru mulai mencari data
     setTimeout(() => { 
       processBarcode(barcode); 
+      window._quickScanTargetTipe = null; // Kosongkan memori setelah dipakai
     }, 300);
     
     return; // Berhenti di sini, jangan lanjut ke kode bawahnya
@@ -1620,11 +1626,28 @@ function handleModalBarcode(barcode) {
 // =============================================
 // QUICK SCAN DARI TOMBOL MELAYANG (FAB)
 // =============================================
+// =============================================
+// QUICK SCAN DARI TOMBOL MELAYANG (FAB)
+// =============================================
 function quickScanGlobal() {
-  window._quickScanGlobalMode = true;
-  window._scanInfoMode = false; // Matikan mode info
-  openModal('modalMiniScan');
-  setTimeout(startMiniScanner, 300);
+  // Buka modal pilihan transaksi terlebih dahulu
+  openModal('modalQuickScanChoice');
+}
+
+function startQuickScan(tipe) {
+  // Simpan tipe yang dipilih user ke dalam memori
+  window._quickScanTargetTipe = tipe;
+  
+  // Tutup modal pilihan
+  closeModal('modalQuickScanChoice');
+  
+  // Buka mini scanner dengan sedikit jeda agar animasi modal sebelumnya selesai
+  setTimeout(() => {
+    window._quickScanGlobalMode = true;
+    window._scanInfoMode = false;
+    openModal('modalMiniScan');
+    setTimeout(startMiniScanner, 300);
+  }, 300); 
 }
 
 // =============================================
