@@ -181,7 +181,7 @@
 
     <div class="modal-footer" style="padding: 16px 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; gap: 10px; background: #fafbfc;">
       <button class="btn btn-outline" onclick="closeModal('modalDetailProduk')">Tutup</button>
-      <button class="btn btn-primary" id="btnEditDetailProduk" style="flex:1;">✏️ Edit Data Produk</button>
+      <button class="btn btn-primary" id="btnEditDetailProduk" style="flex:1;">✏️ Edit Data Utama</button>
     </div>
   </div>
 </div>
@@ -205,6 +205,38 @@
     <div class="modal-footer" style="display:flex; gap:10px;">
       <button class="btn btn-outline" style="flex:1;" onclick="closeModal('modalNotFoundScanInfo')">Tutup</button>
       <button class="btn btn-primary" style="flex:1;" onclick="proceedToTambahProduk()">✚ Tambah Baru</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modalEditStokLokasi" style="z-index: 10005;">
+  <div class="modal" style="max-width:320px">
+    <div class="modal-header">
+      <div class="modal-title">✏️ KOREKSI STOK RAK</div>
+      <button class="modal-close" onclick="closeModal('modalEditStokLokasi')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:20px">
+      <div style="background:var(--bg3); padding:10px; border-radius:8px; margin-bottom:16px; text-align:center;">
+        <div style="font-size:11px; color:var(--text3); letter-spacing:1px; text-transform:uppercase;">Lokasi Terpilih</div>
+        <div id="editStokLokasiLabel" style="font-family:var(--font-display); font-size:20px; font-weight:800; color:var(--accent);">R1 L1 B1</div>
+      </div>
+      
+      <input type="hidden" id="editStokRak">
+      <input type="hidden" id="editStokLantai">
+      <input type="hidden" id="editStokBaris">
+      <input type="hidden" id="editStokBarcode">
+      <input type="hidden" id="editStokNama">
+
+      <div class="form-group mb-0">
+        <label class="form-label">Jumlah Fisik Aktual</label>
+        <input type="number" class="form-control" id="editStokJumlah" style="font-size:24px; font-weight:700; text-align:center; height:50px;" min="0">
+        <div style="font-size:11px; color:var(--text3); margin-top:6px; text-align:center;">
+          Ketik "0" jika rak ini sudah kosong sepenuhnya.
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" style="width:100%" onclick="saveEditStokLokasi()">💾 Simpan Perubahan</button>
     </div>
   </div>
 </div>
