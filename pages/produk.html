@@ -4,9 +4,16 @@
       <div class="page-heading">Data Produk</div>
       <div class="page-subheading">Manajemen master data produk</div>
     </div>
-    <div style="display:flex;gap:8px">
+    <div style="display: flex; gap: 8px">
       <button class="btn btn-outline" onclick="scanInfoProduk()">
         📷 Scan Info
+      </button>
+      <button
+        class="btn btn-outline"
+        style="color: var(--blue); border-color: var(--blue)"
+        onclick="openModalUpload()"
+      >
+        📤 Import Data
       </button>
       <button class="btn btn-primary" onclick="openModalTambahProduk()">
         + Tambah Produk
@@ -15,28 +22,56 @@
   </div>
 
   <div class="card">
-    <div class="card-header" style="flex-wrap:wrap;gap:12px">
+    <div class="card-header" style="flex-wrap: wrap; gap: 12px">
       <div class="card-title">Daftar Produk</div>
-      <div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end;flex-wrap:wrap">
+      <div
+        style="
+          display: flex;
+          gap: 8px;
+          align-items: center;
+          flex: 1;
+          min-width: 0;
+          justify-content: flex-end;
+          flex-wrap: wrap;
+        "
+      >
         <input
           type="text"
           class="form-control"
           id="searchProduk"
           placeholder="🔍 Cari nama / barcode / deskripsi..."
           oninput="filterProdukTable()"
-          style="min-width:200px;max-width:280px">
+          style="min-width: 200px; max-width: 280px"
+        />
         <select
           class="form-control"
           id="filterKategori"
           onchange="filterProdukTable()"
-          style="min-width:140px;max-width:180px">
+          style="min-width: 140px; max-width: 180px"
+        >
           <option value="">Semua Kategori</option>
         </select>
-        <button class="btn btn-outline btn-sm btn-icon" onclick="loadProduk()" title="Refresh data">↻</button>
+        <button
+          class="btn btn-outline btn-sm btn-icon"
+          onclick="loadProduk()"
+          title="Refresh data"
+        >
+          ↻
+        </button>
       </div>
     </div>
 
-    <div id="produkFilterInfo" style="display:none;padding:8px 20px;font-size:12px;color:var(--text3);border-bottom:1px solid var(--border);background:#fafbfc"></div>
+    <div
+      id="produkFilterInfo"
+      style="
+        display: none;
+        padding: 8px 20px;
+        font-size: 12px;
+        color: var(--text3);
+        border-bottom: 1px solid var(--border);
+        background: #fafbfc;
+      "
+    ></div>
 
     <div class="table-wrap">
       <table>
@@ -48,11 +83,19 @@
             <th>Stok</th>
             <th>Satuan</th>
             <th>Lokasi</th>
-            <th>Operator</th> <th>Aksi</th>
+            <th>Operator</th>
+            <th>Aksi</th>
           </tr>
         </thead>
         <tbody id="produk-tbody">
-          <tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text3)">Memuat...</td></tr>
+          <tr>
+            <td
+              colspan="8"
+              style="text-align: center; padding: 30px; color: var(--text3)"
+            >
+              Memuat...
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>

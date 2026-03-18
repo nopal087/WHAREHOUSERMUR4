@@ -1763,3 +1763,115 @@ function closeModal(id) {
     if (idle) idle.style.display = 'block';
   }
 }
+
+// =============================================
+// FITUR IMPORT EXCEL (.XLSX)
+// =============================================
+function openModalUpload() {
+  const fileInput = document.getElementById('fileImportExcel');
+  if(fileInput) fileInput.value = ''; // Reset input file
+  openModal('modalUploadProduk');
+}
+
+function downloadTemplateExcel() {
+  // Membuat struktur data untuk Excel
+  const ws_data = [
+    // Baris 1: Header (Judul Kolom)
+    ["Barcode", "Nama Produk", "Kategori", "Satuan", "Stok Awal", "Rak", "Lantai", "Baris", "Deskripsi", "Operator"],
+    // Baris 2: Contoh Data
+    ["89912345678", "Contoh Barang", "ELEKTRONIK", "pcs", 50, "1", "1", "1", "Barang contoh import", "Admin"]
+  ];
+  
+  // Menggunakan fungsi bawaan SheetJS untuk membuat file .xlsx
+  const ws = XLSX.utils.aoa_to_sheet(ws_data);
+  const wb = XLSX.utils.book_new();
+  
+  // Melebarkan kolom secara otomatis agar rapi di Excel
+  ws['!cols'] = [
+    {wch: 15}, {wch: 30}, {wch: 15}, {wch: 10}, {wch: 12}, 
+    {wch: 8}, {wch: 8}, {wch: 8}, {wch: 25}, {wch: 15}
+  ];
+
+  XLSX.utils.book_append_sheet(wb, ws, "Template_Produk");
+  XLSX.writeFile(wb, "Template_Master_Produk.xlsx");
+}
+
+function processImportExcel() {
+  const fileInput = document.getElementById('fileImportExcel');
+  if (!fileInput || !fileInput.files.length) {
+    showToast('Pilih file Excel terlebih dahulu!', 'error');
+    return;
+  }
+
+  const file = fileInput.files[0];
+  const reader = new FileReader();
+  
+  reader.onload = function(e) {
+    // Membaca file Excel sebagai array buffer
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, {type: 'array'});
+    
+    // Ambil sheet pertama saja
+    const firstSheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[firstSheetName];
+    
+    // Konversi isi Excel menjadi format JSON (Array)
+    const jsonArray = XLSX.utils.sheet_to_json(worksheet, {raw: false});
+    
+    if(jsonArray.length === 0) {
+      showToast('Tidak ada data di dalam Excel!', 'error');
+      return;
+    }
+
+    // Pemetaan data Excel ke format yang dimengerti oleh Backend kita
+    const items = jsonArray.map(row => ({
+      barcode: row['Barcode'] ? String(row['Barcode']).trim() : '',
+      nama: row['Nama Produk'] ? String(row['Nama Produk']).trim() : '',
+      kategori: row['Kategori'] ? String(row['Kategori']).trim() : 'UMUM',
+      satuan: row['Satuan'] ? String(row['Satuan']).trim() : 'pcs',
+      stok: parseInt(row['Stok Awal']) || 0,
+      rak: row['Rak'] ? String(row['Rak']).trim() : '',
+      lantai: row['Lantai'] ? String(row['Lantai']).trim() : '',
+      baris: row['Baris'] ? String(row['Baris']).trim() : '',
+      deskripsi: row['Deskripsi'] ? String(row['Deskripsi']).trim() : '',
+      operator: row['Operator'] ? String(row['Operator']).trim() : 'Sistem Import'
+    })).filter(item => item.barcode !== '' && item.nama !== ''); // Buang baris jika barcode/nama kosong
+
+    if(items.length === 0) {
+      showToast('Data tidak valid. Pastikan Barcode dan Nama terisi!', 'error');
+      return;
+    }
+
+    // Ganti tombol jadi tulisan loading
+    const btn = document.querySelector('#modalUploadProduk .btn-primary');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '⏳ Memproses...';
+    btn.disabled = true;
+
+    showLoading();
+    
+    // Kirim data yang sudah rapi ke Backend
+    callAPI('importProduk', items)
+      .then(res => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        hideLoading();
+        
+        if(res.success) {
+          showToast(res.message, 'success');
+          closeModal('modalUploadProduk');
+          loadProduk(); // Refresh tabel produk
+        } else {
+          showToast('Gagal: ' + res.message, 'error');
+        }
+      })
+      .catch(err => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        hideLoading();
+        showToast('Error: ' + err, 'error');
+      });
+  };
+  
+  reader.readAsArrayBuffer(file);
+}
