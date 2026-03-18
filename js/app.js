@@ -1485,8 +1485,30 @@ function useMiniBarcode() {
 // =============================================
 // HANDLE BARCODE DARI MINI SCANNER
 // =============================================
+// =============================================
+// HANDLE BARCODE DARI MINI SCANNER
+// =============================================
 function handleModalBarcode(barcode) {
-  // ── MODE SCAN INFO (dari halaman Data Produk) ──
+
+  // ── 1. MODE QUICK SCAN GLOBAL (Dari Tombol Melayang HP) ──
+  if (window._quickScanGlobalMode) {
+    window._quickScanGlobalMode = false;
+    
+    // Pindah ke menu utama "Scan Barang"
+    showPage('scan', null); 
+    
+    // Isi input manual dan langsung proses pencarian barcodenya
+    document.getElementById('manualBarcode').value = barcode;
+    
+    // Beri jeda 300ms agar halaman berganti dulu, baru mulai mencari data
+    setTimeout(() => { 
+      processBarcode(barcode); 
+    }, 300);
+    
+    return; // Berhenti di sini, jangan lanjut ke kode bawahnya
+  }
+
+  // ── 2. MODE SCAN INFO (dari halaman Data Produk) ──
   if (window._scanInfoMode) {
     window._scanInfoMode = false;
     showLoading();
@@ -1504,6 +1526,7 @@ function handleModalBarcode(barcode) {
           ? lokasiProduk.reduce((sum, l) => sum + (parseInt(l.jumlah) || 0), 0)
           : p.stok;
 
+        // Suntikkan data ke Modal Detail Produk
         document.getElementById('detailNama').textContent = p.nama;
         document.getElementById('detailBarcode').textContent = p.barcode;
         document.getElementById('detailKategori').textContent = p.kategori || 'Umum';
@@ -1511,9 +1534,10 @@ function handleModalBarcode(barcode) {
         const stokEl = document.getElementById('detailStok');
         stokEl.textContent = totalStok;
         stokEl.style.color = totalStok <= 0 ? 'var(--red)' : (totalStok <= 5 ? '#eab308' : 'var(--green)');
+        
         document.getElementById('detailSatuan').textContent = p.satuan || 'pcs';
 
-        // [PERBAIKAN] Tambahan Kolom Aksi di Tabel
+        // Render tabel multi-lokasi di dalam modal
         const lokasiContainer = document.getElementById('detailLokasiContainer');
         if (lokasiProduk.length === 0) {
           lokasiContainer.innerHTML = `<div style="text-align:center;padding:16px;color:var(--text3);font-size:13px;border:1px dashed var(--border);border-radius:8px;">Belum ada data lokasi rak</div>`;
@@ -1548,7 +1572,7 @@ function handleModalBarcode(barcode) {
 
         document.getElementById('btnEditDetailProduk').onclick = function() {
           closeModal('modalDetailProduk');
-          setTimeout(() => { editProdukById(p.id); }, 300);
+          setTimeout(() => { editProdukById(p.id); }, 300); 
         };
 
         openModal('modalDetailProduk');
@@ -1562,8 +1586,9 @@ function handleModalBarcode(barcode) {
     return; 
   }
 
-  // ── MODE NORMAL ──
+  // ── 3. MODE NORMAL (dari modal Tambah/Edit Produk) ──
   document.getElementById('produkBarcode').value = barcode;
+
   showLoading();
   callAPI('getProdukByBarcode', barcode)
     .then(result => {
@@ -1585,10 +1610,22 @@ function handleModalBarcode(barcode) {
         if (document.getElementById('produkOperator') && p.operator) {
           document.getElementById('produkOperator').value = p.operator !== '—' ? p.operator : '';
         }
+        
         showToast('Produk ditemukan — data terisi otomatis', 'info');
       }
-    }).catch(() => hideLoading());
-} 
+    })
+    .catch(() => hideLoading());
+}
+
+// =============================================
+// QUICK SCAN DARI TOMBOL MELAYANG (FAB)
+// =============================================
+function quickScanGlobal() {
+  window._quickScanGlobalMode = true;
+  window._scanInfoMode = false; // Matikan mode info
+  openModal('modalMiniScan');
+  setTimeout(startMiniScanner, 300);
+}
 
 // =============================================
 // FUNGSI KOREKSI STOK LOKASI (DARI SCAN INFO)
