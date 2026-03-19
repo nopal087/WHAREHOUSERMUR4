@@ -4,21 +4,17 @@
       <div class="page-heading">Data Produk</div>
       <div class="page-subheading">Manajemen master data produk</div>
     </div>
-    <div style="display: flex; gap: 8px">
-      <button class="btn btn-outline" onclick="scanInfoProduk()">
-        📷 Scan Info
-      </button>
-      <button
-        class="btn btn-outline"
-        style="color: var(--blue); border-color: var(--blue)"
-        onclick="openModalUpload()"
-      >
-        📤 Import Data
-      </button>
-      <button class="btn btn-primary" onclick="openModalTambahProduk()">
-        + Tambah Produk
-      </button>
-    </div>
+   <div style="display: flex; gap: 8px; flex-wrap: wrap; flex: 1; min-width: 280px; justify-content: flex-end;">
+    <button class="btn btn-outline" style="flex: 1; min-width: 100px; padding: 8px 10px; font-size: 13px; white-space: nowrap;" onclick="scanInfoProduk()">
+      📷 Scan Info
+    </button>
+    <button class="btn btn-outline" style="flex: 1; min-width: 100px; padding: 8px 10px; font-size: 13px; white-space: nowrap; color:var(--blue); border-color:var(--blue);" onclick="openModalUpload()">
+      📤 Import Data
+    </button>
+    <button class="btn btn-primary" style="flex: 1; min-width: 100px; padding: 8px 10px; font-size: 13px; white-space: nowrap;" onclick="openModalTambahProduk()">
+      + Tambah Produk
+    </button>
+  </div>
   </div>
 
   <div class="card">
