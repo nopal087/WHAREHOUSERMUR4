@@ -2443,3 +2443,16 @@ function cetakBarcode(barcode, nama) {
   `);
   printWin.document.close();
 }
+
+// =============================================
+// HILANGKAN SPLASH SCREEN SAAT APLIKASI SIAP
+// =============================================
+window.addEventListener('load', function() {
+  setTimeout(function() {
+    const splash = document.getElementById('ios-splash');
+    if (splash) {
+      splash.style.opacity = '0'; // Buat memudar
+      setTimeout(() => splash.remove(), 500); // Hapus dari layar
+    }
+  }, 800); // Tampil selama 0.8 detik
+});
