@@ -134,34 +134,99 @@ function showToast(message, type = 'info') {
 // =============================================
 // DASHBOARD
 // =============================================
+// function loadDashboard() {
+//   showLoading();
+//   callAPI('getDashboardStats')
+//     .then(data => {
+//       hideLoading();
+//       if (!data.success) return;
+//       document.getElementById('stat-total-produk').textContent = data.totalProduk;
+//       document.getElementById('stat-masuk').textContent = data.masukHariIni;
+//       document.getElementById('stat-keluar').textContent = data.keluarHariIni;
+//       document.getElementById('stat-stok-rendah').textContent = data.stokRendah;
+
+//       const tbody = document.getElementById('dashboard-transaksi-tbody');
+//       if (!data.transaksiTerbaru || data.transaksiTerbaru.length === 0) {
+//         tbody.innerHTML = '<tr><td colspan="6" class="empty-state" style="text-align:center;padding:30px;color:var(--text3)">Belum ada transaksi</td></tr>';
+//         return;
+//       }
+//       tbody.innerHTML = data.transaksiTerbaru.map(t => `
+//         <tr>
+//           <td style="color:var(--text3);font-size:12px">${t.timestamp}</td>
+//           <td>${t.namaProduk}</td>
+//           <td class="barcode-cell">${t.barcode}</td>
+//           <td><span class="badge ${t.tipe==='MASUK'?'badge-green':'badge-red'}">${t.tipe}</span></td>
+//           <td>${t.jumlah}</td>
+//           <td style="font-size:12px">${t.rak?'Rak '+t.rak+' L'+t.lantai+' B'+t.baris:'—'}</td>
+//         </tr>
+//       `).join('');
+//     })
+//     .catch(err => { hideLoading(); showToast('Gagal memuat dashboard: ' + err, 'error'); });
+// }
+
+// =============================================
+// DASHBOARD (VERSI SAT-SET / CACHE FIRST)
+// =============================================
+
+// Fungsi pembantu (helper) untuk mencetak UI agar tidak duplikat kodenya
+function renderDashboardUI(data) {
+  document.getElementById('stat-total-produk').textContent = data.totalProduk || 0;
+  document.getElementById('stat-masuk').textContent = data.masukHariIni || 0;
+  document.getElementById('stat-keluar').textContent = data.keluarHariIni || 0;
+  document.getElementById('stat-stok-rendah').textContent = data.stokRendah || 0;
+
+  const tbody = document.getElementById('dashboard-transaksi-tbody');
+  if (!data.transaksiTerbaru || data.transaksiTerbaru.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-state" style="text-align:center;padding:30px;color:var(--text3)">Belum ada transaksi</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.transaksiTerbaru.map(t => `
+    <tr>
+      <td style="color:var(--text3);font-size:12px">${t.timestamp}</td>
+      <td>${t.namaProduk}</td>
+      <td class="barcode-cell">${t.barcode}</td>
+      <td><span class="badge ${t.tipe==='MASUK'?'badge-green':'badge-red'}">${t.tipe}</span></td>
+      <td>${t.jumlah}</td>
+      <td style="font-size:12px">${t.rak?'Rak '+t.rak+' L'+t.lantai+' B'+t.baris:'—'}</td>
+    </tr>
+  `).join('');
+}
+
+// Fungsi utama Load Dashboard
 function loadDashboard() {
-  showLoading();
+  const CACHE_KEY = 'wms_cache_dashboard';
+  
+  // 1. CEK CACHE LOKAL: Langsung tampilkan angka terakhir yang tersimpan di HP
+  const cachedData = localStorage.getItem(CACHE_KEY);
+  if (cachedData) {
+    try {
+      renderDashboardUI(JSON.parse(cachedData));
+      console.log("⚡ Dashboard dimuat instan!");
+    } catch(e) {
+      console.error("Gagal parse cache dashboard");
+    }
+  } else {
+    // Jika belum pernah buka aplikasi sama sekali
+    showLoading();
+  }
+
+  // 2. SINKRONISASI BACKGROUND: Ambil data statistik terbaru dari server
   callAPI('getDashboardStats')
     .then(data => {
-      hideLoading();
+      if (!cachedData) hideLoading();
       if (!data.success) return;
-      document.getElementById('stat-total-produk').textContent = data.totalProduk;
-      document.getElementById('stat-masuk').textContent = data.masukHariIni;
-      document.getElementById('stat-keluar').textContent = data.keluarHariIni;
-      document.getElementById('stat-stok-rendah').textContent = data.stokRendah;
-
-      const tbody = document.getElementById('dashboard-transaksi-tbody');
-      if (!data.transaksiTerbaru || data.transaksiTerbaru.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="empty-state" style="text-align:center;padding:30px;color:var(--text3)">Belum ada transaksi</td></tr>';
-        return;
-      }
-      tbody.innerHTML = data.transaksiTerbaru.map(t => `
-        <tr>
-          <td style="color:var(--text3);font-size:12px">${t.timestamp}</td>
-          <td>${t.namaProduk}</td>
-          <td class="barcode-cell">${t.barcode}</td>
-          <td><span class="badge ${t.tipe==='MASUK'?'badge-green':'badge-red'}">${t.tipe}</span></td>
-          <td>${t.jumlah}</td>
-          <td style="font-size:12px">${t.rak?'Rak '+t.rak+' L'+t.lantai+' B'+t.baris:'—'}</td>
-        </tr>
-      `).join('');
+      
+      // 3. UPDATE: Simpan data baru ke HP dan perbarui tampilan layar
+      localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+      renderDashboardUI(data);
     })
-    .catch(err => { hideLoading(); showToast('Gagal memuat dashboard: ' + err, 'error'); });
+    .catch(err => { 
+      // Jika offline, biarkan user melihat cache (jangan tampilkan loading terus)
+      if (!cachedData) {
+        hideLoading(); 
+        showToast('Gagal memuat dashboard: ' + err, 'error'); 
+      }
+    });
 }
 
 
@@ -1086,61 +1151,6 @@ function setTipeTransaksi(tipe) {
 // =============================================
 // TRANSAKSI
 // =============================================
-
-// function submitTransaksi() {
-//   if (!currentScanResult) { showToast('Scan atau cari produk terlebih dahulu', 'error'); return; }
-//   const jumlah = parseInt(document.getElementById('txJumlah').value);
-//   if (!jumlah || jumlah <= 0) { showToast('Masukkan jumlah yang valid', 'error'); return; }
-
-//   const rak = document.getElementById('txRak').value;
-//   const lantai = document.getElementById('txLantai').value;
-//   const baris = document.getElementById('txBaris').value;
-
-//   // WAJIBKAN lokasi untuk MASUK dan TAMBAH
-//   if ((currentTipeTransaksi === 'MASUK' || currentTipeTransaksi === 'TAMBAH') && (!rak || !lantai || !baris)) {
-//     showToast('Pilih lokasi rak, lantai, dan baris', 'error');
-//     return;
-//   }
-//   if (currentTipeTransaksi === 'KELUAR' && jumlah > currentScanResult.stok) {
-//     if (!confirm(`Stok saat ini: ${currentScanResult.stok}. Jumlah keluar: ${jumlah}. Stok akan menjadi ${currentScanResult.stok - jumlah}. Lanjutkan?`)) return;
-//   }
-
-//   showLoading();
-//   const data = {
-//     barcode: currentScanResult.barcode,
-//     namaProduk: currentScanResult.nama,
-//     tipe: currentTipeTransaksi,
-//     jumlah: jumlah,
-//     rak: rak, lantai: lantai, baris: baris,
-//     catatan: document.getElementById('txCatatan').value,
-//     operator: 'Admin'
-//   };
-
-//   callAPI('catatTransaksi', data)
-//     .then(result => {
-//       hideLoading();
-//       if (result.success) {
-//         showToast('Transaksi berhasil dicatat!', 'success');
-//         playBeep();
-//         // Reset form
-//         document.getElementById('txJumlah').value = 1;
-//         document.getElementById('txCatatan').value = '';
-//         document.getElementById('txRak').value = '';
-//         document.getElementById('txLantai').value = '';
-//         document.getElementById('txBaris').value = '';
-//         document.getElementById('resultFound').classList.remove('show');
-//         document.getElementById('resultEmpty').style.display = 'block';
-//         document.getElementById('manualBarcode').value = '';
-//         currentScanResult = null;
-//         loadDashboard();
-//       } else { showToast('Gagal: ' + result.message, 'error'); }
-//     })
-//     .catch(err => { hideLoading(); showToast('Error: ' + err, 'error'); });
-// }
-
-// =============================================
-// TRANSAKSI
-// =============================================
 // function submitTransaksi() {
 //   if (!currentScanResult) { showToast('Scan atau cari produk terlebih dahulu', 'error'); return; }
   
@@ -1335,30 +1345,102 @@ function submitTransaksi() {
 // =============================================
 // PRODUK CRUD
 // =============================================
+// function loadProduk() {
+//   showLoading();
+//   // Mengambil data produk dan data lokasi secara bersamaan agar cepat
+//   Promise.all([
+//     callAPI('getAllProduk'),
+//     callAPI('getSemuaLokasi')
+//   ])
+//   .then(([produkResult, lokasiResult]) => {
+//     hideLoading();
+//     if (!produkResult.success) { showToast('Gagal memuat produk', 'error'); return; }
+
+//     const semuaLokasi = lokasiResult.success ? lokasiResult.data : [];
+
+//     // Gabungkan riwayat multi-lokasi ke dalam setiap baris produk
+//     allProdukData = produkResult.data.map(p => {
+//       // Filter lokasi khusus untuk barcode produk ini
+//       p.listLokasi = semuaLokasi.filter(l => String(l.barcode) === String(p.barcode));
+//       return p;
+//     });
+
+//     renderProdukTable(allProdukData);
+//     buildKategoriFilter(allProdukData);
+//   })
+//   .catch(err => { hideLoading(); showToast('Error: ' + err, 'error'); });
+// }
+
 function loadProduk() {
-  showLoading();
-  // Mengambil data produk dan data lokasi secara bersamaan agar cepat
+  const CACHE_KEY = 'wms_cache_produk_lokasi';
+
+  // ========================================================
+  // 1. FASE "SAT SET": TAMPILKAN DATA DARI MEMORI HP JIKA ADA
+  // ========================================================
+  const cachedData = localStorage.getItem(CACHE_KEY);
+  if (cachedData) {
+    try {
+      // Ambil data dari memori dan langsung cetak ke layar dalam 0.1 detik!
+      allProdukData = JSON.parse(cachedData);
+      renderProdukTable(allProdukData);
+      buildKategoriFilter(allProdukData);
+      console.log("⚡ Data Produk dimuat instan dari cache HP!");
+    } catch (e) {
+      console.error("Gagal membaca cache, memuat ulang dari server...");
+    }
+  } else {
+    // Jika aplikasi baru pertama kali diinstal (belum ada cache), tampilkan loading
+    showLoading();
+  }
+
+  // ========================================================
+  // 2. FASE "SINKRONISASI": AMBIL DATA TERBARU SECARA DIAM-DIAM
+  // ========================================================
   Promise.all([
     callAPI('getAllProduk'),
     callAPI('getSemuaLokasi')
   ])
   .then(([produkResult, lokasiResult]) => {
-    hideLoading();
-    if (!produkResult.success) { showToast('Gagal memuat produk', 'error'); return; }
+    // Jika sebelumnya menampilkan loading (karena tidak ada cache), sekarang matikan
+    if (!cachedData) hideLoading(); 
+
+    if (!produkResult.success) { 
+      // Hanya tampilkan error jika layar benar-benar kosong (tidak ada cache)
+      if (!cachedData) showToast('Gagal memuat produk dari server', 'error'); 
+      return; 
+    }
 
     const semuaLokasi = lokasiResult.success ? lokasiResult.data : [];
 
     // Gabungkan riwayat multi-lokasi ke dalam setiap baris produk
-    allProdukData = produkResult.data.map(p => {
-      // Filter lokasi khusus untuk barcode produk ini
+    const newData = produkResult.data.map(p => {
       p.listLokasi = semuaLokasi.filter(l => String(l.barcode) === String(p.barcode));
       return p;
     });
 
+    // Update variabel global dengan data terbaru dari server
+    allProdukData = newData;
+
+    // ========================================================
+    // 3. FASE "UPDATE": SIMPAN CACHE BARU & REFRESH TAMPILAN
+    // ========================================================
+    localStorage.setItem(CACHE_KEY, JSON.stringify(allProdukData)); // Simpan ke HP
+    
+    // Perbarui tabel secara halus (tanpa layar loading)
     renderProdukTable(allProdukData);
     buildKategoriFilter(allProdukData);
+    
   })
-  .catch(err => { hideLoading(); showToast('Error: ' + err, 'error'); });
+  .catch(err => { 
+    if (!cachedData) {
+      hideLoading(); 
+      showToast('Error koneksi: ' + err, 'error'); 
+    } else {
+      // Jika error karena sinyal jelek di gudang, diamkan saja. 
+      // User tetap bisa melihat data dari Cache HP secara Offline!
+      console.warn("Sedang offline. Menggunakan data cache produk.");
+    }
+  });
 }
 
 function buildKategoriFilter(data) {
@@ -1380,33 +1462,7 @@ function buildKategoriFilter(data) {
   if (currentVal) select.value = currentVal;
 }
 
-// function renderProdukTable(data) {
-//   const tbody = document.getElementById('produk-tbody');
-//   if (!data || data.length === 0) {
-//     tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📦</div><p>Belum ada produk. Tambahkan produk pertama!</p></div></td></tr>';
-//     return;
-//   }
-//   tbody.innerHTML = data.map(p => {
-//     const stokClass = p.stok <= 0 ? 'stok-warning' : p.stok <= 5 ? 'stok-low' : 'stok-ok';
-//     const lokasi = p.rak ? `R${p.rak} L${p.lantai} B${p.baris}` : '<span style="color:var(--text3)">—</span>';
-//     return `
-//       <tr>
-//         <td class="barcode-cell">${p.barcode}</td>
-//         <td><strong>${p.nama}</strong><div style="font-size:11px;color:var(--text3)">${p.deskripsi||''}</div></td>
-//         <td><span class="badge badge-blue">${p.kategori||'—'}</span></td>
-//         <td><span class="stok-badge ${stokClass}">${p.stok}</span></td>
-//         <td style="color:var(--text3)">${p.satuan}</td>
-//         <td style="font-size:12px;font-family:var(--font-mono)">${lokasi}</td>
-//         <td>
-//           <div class="td-actions">
-//             <button class="btn btn-outline btn-sm btn-icon" onclick="editProdukById('${p.id}')" title="Edit">✏️</button>
-//             <button class="btn btn-danger btn-sm btn-icon" onclick="hapusProdukModal('${p.id}','${p.nama.replace(/'/g,'\\\'')}')" title="Hapus">🗑️</button>
-//           </div>
-//         </td>
-//       </tr>
-//     `;
-//   }).join('');
-// }
+
 
 function renderProdukTable(data) {
   const tbody = document.getElementById('produk-tbody');
@@ -1618,10 +1674,6 @@ function konfirmasiHapus() {
 //     })
 //     .catch(err => { hideLoading(); showToast('Error: ' + err, 'error'); });
 // }
-
-// =============================================
-// RIWAYAT
-// =============================================
 // =============================================
 // RIWAYAT
 // =============================================
@@ -1736,15 +1788,52 @@ function renderRiwayatTable(tbodyId, data) {
 // =============================================
 // LOKASI / RAK
 // =============================================
+// function loadLokasi() {
+//   showLoading();
+//   callAPI('getSemuaLokasi')
+//     .then(result => {
+//       hideLoading();
+//       lokasiData = result.data || [];
+//       renderRakGrid();
+//     })
+//     .catch(err => { hideLoading(); showToast('Error: ' + err, 'error'); });
+// }
+
+// =============================================
+// LOKASI / RAK (VERSI SAT-SET / CACHE FIRST)
+// =============================================
 function loadLokasi() {
-  showLoading();
+  const CACHE_KEY = 'wms_cache_lokasi';
+  
+  // 1. CEK CACHE LOKAL
+  const cachedData = localStorage.getItem(CACHE_KEY);
+  if (cachedData) {
+    try {
+      lokasiData = JSON.parse(cachedData);
+      renderRakGrid(); // Langsung susun peta rak dari memori
+      console.log("⚡ Peta Rak dimuat instan!");
+    } catch(e) {}
+  } else {
+    showLoading();
+  }
+
+  // 2. SINKRONISASI BACKGROUND
   callAPI('getSemuaLokasi')
     .then(result => {
-      hideLoading();
+      if (!cachedData) hideLoading();
+      if (!result.success) return;
+
+      // 3. UPDATE
       lokasiData = result.data || [];
-      renderRakGrid();
+      localStorage.setItem(CACHE_KEY, JSON.stringify(lokasiData));
+      renderRakGrid(); // Gambar ulang peta rak jika ada barang yang pindah
     })
-    .catch(err => { hideLoading(); showToast('Error: ' + err, 'error'); });
+    .catch(err => { 
+      if (!cachedData) {
+        hideLoading(); 
+        showToast('Error: ' + err, 'error'); 
+      }
+    });
 }
 
 function renderRakGrid() {
