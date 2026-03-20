@@ -1661,6 +1661,7 @@ function konfirmasiHapus() {
     .catch(err => { hideLoading(); showToast('Error: ' + err, 'error'); });
 }
 
+
 // =============================================
 // RIWAYAT
 // =============================================
@@ -1670,35 +1671,75 @@ function konfirmasiHapus() {
 //     .then(result => {
 //       hideLoading();
 //       const tbodyId = tipe === 'MASUK' ? 'masuk-tbody' : 'keluar-tbody';
-//       renderRiwayatTable(tbodyId, result.data || []);
+//       const dataTransaksi = result.data || [];
+      
+//       // Simpan data ke memori sesuai tipenya agar bisa difilter
+//       if (tipe === 'MASUK') {
+//         riwayatMasukData = dataTransaksi;
+//         const searchInput = document.getElementById('searchMasuk');
+//         if (searchInput) searchInput.value = '';
+//       } else if (tipe === 'KELUAR') {
+//         riwayatKeluarData = dataTransaksi;
+//         const searchInput = document.getElementById('searchKeluar');
+//         if (searchInput) searchInput.value = '';
+//       }
+
+//       renderRiwayatTable(tbodyId, dataTransaksi);
 //     })
 //     .catch(err => { hideLoading(); showToast('Error: ' + err, 'error'); });
 // }
+
 // =============================================
-// RIWAYAT
+// RIWAYAT (VERSI SAT-SET / CACHE FIRST)
 // =============================================
 function loadRiwayat(tipe) {
-  showLoading();
+  const CACHE_KEY = 'wms_cache_riwayat_' + tipe; // Menghasilkan kunci cache: wms_cache_riwayat_MASUK dll.
+  const tbodyId = tipe === 'MASUK' ? 'masuk-tbody' : 'keluar-tbody';
+
+  // 1. CEK CACHE LOKAL: Tampilkan data memori HP seketika
+  const cachedData = localStorage.getItem(CACHE_KEY);
+  if (cachedData) {
+    try {
+      const parsedData = JSON.parse(cachedData);
+      
+      // Isi variabel global agar fitur Search/Filter langsung bisa jalan
+      if (tipe === 'MASUK') riwayatMasukData = parsedData;
+      else if (tipe === 'KELUAR') riwayatKeluarData = parsedData;
+      
+      renderRiwayatTable(tbodyId, parsedData);
+      console.log(`⚡ Riwayat ${tipe} dimuat instan dari cache!`);
+    } catch(e) {
+      console.error("Gagal membaca cache riwayat", e);
+    }
+  } else {
+    // Jika belum ada cache sama sekali
+    showLoading();
+  }
+
+  // 2. SINKRONISASI BACKGROUND: Ambil riwayat terbaru dari server
   callAPI('getTransaksi', { tipe: tipe })
     .then(result => {
-      hideLoading();
-      const tbodyId = tipe === 'MASUK' ? 'masuk-tbody' : 'keluar-tbody';
+      if (!cachedData) hideLoading();
+      
       const dataTransaksi = result.data || [];
       
-      // Simpan data ke memori sesuai tipenya agar bisa difilter
+      // Update variabel global untuk filter pencarian
       if (tipe === 'MASUK') {
         riwayatMasukData = dataTransaksi;
-        const searchInput = document.getElementById('searchMasuk');
-        if (searchInput) searchInput.value = '';
       } else if (tipe === 'KELUAR') {
         riwayatKeluarData = dataTransaksi;
-        const searchInput = document.getElementById('searchKeluar');
-        if (searchInput) searchInput.value = '';
       }
 
+      // 3. UPDATE: Simpan ke memori HP dan perbarui tabel di layar
+      localStorage.setItem(CACHE_KEY, JSON.stringify(dataTransaksi));
       renderRiwayatTable(tbodyId, dataTransaksi);
     })
-    .catch(err => { hideLoading(); showToast('Error: ' + err, 'error'); });
+    .catch(err => { 
+      if (!cachedData) {
+        hideLoading(); 
+        showToast('Error koneksi: ' + err, 'error'); 
+      }
+    });
 }
 
 function filterRiwayatMasuk() {
@@ -1738,32 +1779,88 @@ function filterRiwayatKeluar() {
   renderRiwayatTable('keluar-tbody', filteredData);
 }
 
+// function loadAllRiwayat() {
+//   const tipe = document.getElementById('filterTipe').value;
+//   showLoading();
+//   callAPI('getTransaksi', tipe ? { tipe: tipe } : {})
+//     .then(result => {
+//       hideLoading();
+//       const data = result.data || [];
+//       const tbody = document.getElementById('riwayat-tbody');
+//       if (data.length === 0) {
+//         tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text3)">Belum ada transaksi</td></tr>';
+//         return;
+//       }
+//       tbody.innerHTML = data.map(t => `
+//         <tr>
+//           <td style="font-size:12px;color:var(--text3)">${t.timestamp}</td>
+//           <td><span class="badge ${t.tipe==='MASUK'?'badge-green':'badge-red'}">${t.tipe}</span></td>
+//           <td class="barcode-cell">${t.barcode}</td>
+//           <td>${t.namaProduk}</td>
+//           <td><strong>${t.jumlah}</strong></td>
+//           <td style="font-size:12px">${t.rak?'R'+t.rak+' L'+t.lantai+' B'+t.baris:'—'}</td>
+//           <td style="color:var(--text3)">${t.operator}</td>
+//           <td style="color:var(--text3);font-size:12px">${t.catatan||''}</td>
+//         </tr>
+//       `).join('');
+//     })
+//     .catch(err => { hideLoading(); showToast('Error: ' + err, 'error'); });
+// }
+
+// Fungsi pembantu untuk mencetak UI Semua Riwayat
+function renderAllRiwayatUI(data) {
+  const tbody = document.getElementById('riwayat-tbody');
+  if (!data || data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text3)">Belum ada transaksi</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(t => `
+    <tr>
+      <td style="font-size:12px;color:var(--text3)">${t.timestamp}</td>
+      <td><span class="badge ${t.tipe==='MASUK'?'badge-green':(t.tipe==='KELUAR'?'badge-red':'badge-yellow')}">${t.tipe}</span></td>
+      <td class="barcode-cell">${t.barcode}</td>
+      <td>${t.namaProduk}</td>
+      <td><strong>${t.jumlah}</strong></td>
+      <td style="font-size:12px">${t.rak?'R'+t.rak+' L'+t.lantai+' B'+t.baris:'—'}</td>
+      <td style="color:var(--text3)">${t.operator}</td>
+      <td style="color:var(--text3);font-size:12px">${t.catatan||''}</td>
+    </tr>
+  `).join('');
+}
+
+// Fungsi Utama Load Semua Riwayat
 function loadAllRiwayat() {
-  const tipe = document.getElementById('filterTipe').value;
-  showLoading();
-  callAPI('getTransaksi', tipe ? { tipe: tipe } : {})
+  const tipe = document.getElementById('filterTipe').value || 'ALL';
+  const CACHE_KEY = 'wms_cache_riwayat_all_' + tipe; // Cache dipisah berdasarkan filter tipe
+  
+  // 1. CEK CACHE LOKAL
+  const cachedData = localStorage.getItem(CACHE_KEY);
+  if (cachedData) {
+    try {
+      renderAllRiwayatUI(JSON.parse(cachedData));
+      console.log("⚡ Semua Riwayat dimuat instan!");
+    } catch(e) {}
+  } else {
+    showLoading();
+  }
+
+  // 2. SINKRONISASI BACKGROUND
+  callAPI('getTransaksi', tipe !== 'ALL' ? { tipe: tipe } : {})
     .then(result => {
-      hideLoading();
+      if (!cachedData) hideLoading();
+      
       const data = result.data || [];
-      const tbody = document.getElementById('riwayat-tbody');
-      if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text3)">Belum ada transaksi</td></tr>';
-        return;
-      }
-      tbody.innerHTML = data.map(t => `
-        <tr>
-          <td style="font-size:12px;color:var(--text3)">${t.timestamp}</td>
-          <td><span class="badge ${t.tipe==='MASUK'?'badge-green':'badge-red'}">${t.tipe}</span></td>
-          <td class="barcode-cell">${t.barcode}</td>
-          <td>${t.namaProduk}</td>
-          <td><strong>${t.jumlah}</strong></td>
-          <td style="font-size:12px">${t.rak?'R'+t.rak+' L'+t.lantai+' B'+t.baris:'—'}</td>
-          <td style="color:var(--text3)">${t.operator}</td>
-          <td style="color:var(--text3);font-size:12px">${t.catatan||''}</td>
-        </tr>
-      `).join('');
+      
+      // 3. UPDATE TAMPILAN
+      localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+      renderAllRiwayatUI(data);
     })
-    .catch(err => { hideLoading(); showToast('Error: ' + err, 'error'); });
+    .catch(err => {
+      if (!cachedData) {
+        hideLoading(); 
+        showToast('Error koneksi: ' + err, 'error');
+      }
+    });
 }
 
 function renderRiwayatTable(tbodyId, data) {
