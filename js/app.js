@@ -2993,27 +2993,30 @@ window.addEventListener('load', function() {
 // }
 
 
-// Tambahkan variabel status ini di bagian paling atas (di bawah let keranjangTransaksi = [];)
+// Tambahkan variabel status ini di bagian paling atas
 let isKeranjangExpanded = false;
 
 // =============================================
-// FITUR UI KERANJANG BATCH SCANNING (VERSI LIPAT & UX SCAN LAGI)
+// FITUR UI KERANJANG BATCH SCANNING (VERSI LIPAT & ANTI MENGHALANGI)
 // =============================================
 function renderKeranjang() {
   let container = document.getElementById('keranjangContainer');
+  const formSection = document.getElementById('formTransaksiSection'); // Elemen form Anda
   
   if (!container) {
     container = document.createElement('div');
     container.id = 'keranjangContainer';
-    // Desain CSS diperbarui: max-height dihapus agar bisa menyesuaikan mode lipat/buka
-    container.style.cssText = 'position: fixed; bottom: 80px; left: 15px; right: 15px; background: #fff; border-radius: 12px; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); z-index: 999; display: none; flex-direction: column; border: 1px solid var(--border); transition: all 0.3s ease; overflow: hidden;';
+    // Posisi sedikit dinaikkan (bottom: 90px) agar tidak bentrok dengan tombol Quick Scan
+    container.style.cssText = 'position: fixed; bottom: 90px; left: 15px; right: 15px; background: #fff; border-radius: 14px; box-shadow: 0 -4px 25px rgba(0,0,0,0.2); z-index: 999; display: none; flex-direction: column; border: 1px solid var(--border); transition: all 0.3s ease; overflow: hidden;';
     document.body.appendChild(container);
   }
 
-  // Jika keranjang kosong, sembunyikan UI dan reset lipatan
+  // JIKA KERANJANG KOSONG
   if (keranjangTransaksi.length === 0) {
     container.style.display = 'none';
     isKeranjangExpanded = false;
+    // Kembalikan form ke ukuran normal
+    if (formSection) formSection.style.paddingBottom = '0px'; 
     return;
   }
 
@@ -3023,6 +3026,9 @@ function renderKeranjang() {
   // MODE 1: KERANJANG TERTUTUP (KECIL / MINIMIZED)
   // ----------------------------------------------------
   if (!isKeranjangExpanded) {
+    // 🔥 TRIK UX: Beri ruang kosong 130px di bawah form agar bisa di-scroll melewati keranjang
+    if (formSection) formSection.style.paddingBottom = '130px'; 
+
     container.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px;">
         <div style="display: flex; align-items: center; gap: 10px; cursor: pointer; flex: 1;" onclick="toggleKeranjang()">
@@ -3033,7 +3039,7 @@ function renderKeranjang() {
           </div>
         </div>
         <div style="display: flex; gap: 6px;">
-          <button onclick="lanjutScanLagi(event)" class="btn btn-outline" style="padding: 8px 10px; font-size: 11px; font-weight: 800; border-radius: 8px; margin: 0; border: 2px solid var(--accent); color: var(--accent);">
+          <button onclick="lanjutScanLagi(event)" class="btn btn-outline" style="padding: 8px 10px; font-size: 11px; font-weight: 800; border-radius: 8px; margin: 0; border: 2px solid var(--accent); color: var(--accent); background: #fff;">
             📷 SCAN LAGI
           </button>
           <button onclick="simpanMassal(event)" class="btn btn-primary" style="padding: 8px 12px; font-size: 12px; font-weight: 800; border-radius: 8px; margin: 0; box-shadow: 0 4px 10px rgba(234, 108, 0, 0.3);">
@@ -3047,6 +3053,9 @@ function renderKeranjang() {
   // MODE 2: KERANJANG TERBUKA (DETAIL EXPANDED)
   // ----------------------------------------------------
   else {
+    // 🔥 TRIK UX: Beri ruang kosong super besar saat keranjang mekar
+    if (formSection) formSection.style.paddingBottom = '50vh'; 
+
     let html = `
       <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px dashed var(--border);">
         <h3 style="font-size: 14px; font-weight: 800; margin: 0; color: var(--accent);">🛒 Keranjang (${keranjangTransaksi.length} Item)</h3>
@@ -3082,7 +3091,7 @@ function renderKeranjang() {
     html += `
       </div>
       <div style="padding: 12px 16px; border-top: 1px solid var(--border); display: flex; gap: 8px;">
-        <button onclick="lanjutScanLagi(event)" class="btn btn-outline" style="flex: 1; font-size: 13px; font-weight: 800; padding: 12px; border: 2px solid var(--accent); color: var(--accent);">
+        <button onclick="lanjutScanLagi(event)" class="btn btn-outline" style="flex: 1; font-size: 13px; font-weight: 800; padding: 12px; border: 2px solid var(--accent); color: var(--accent); background: #fff;">
           📷 SCAN LAGI
         </button>
         <button onclick="simpanMassal(event)" class="btn btn-primary" style="flex: 1.5; font-size: 13px; font-weight: 800; padding: 12px; box-shadow: 0 4px 12px rgba(234, 108, 0, 0.3);">
@@ -3098,21 +3107,23 @@ function renderKeranjang() {
 // FUNGSI PENDUKUNG KERANJANG
 // =============================================
 
-// Fungsi untuk membuka/menutup lipatan keranjang
 function toggleKeranjang() {
   isKeranjangExpanded = !isKeranjangExpanded;
   renderKeranjang();
 }
 
-// UX Cerdas: Arahkan kursor kembali ke kotak scan
+// FUNGSI BARU: Arahkan layar kembali ke atas untuk scan berikutnya
 function lanjutScanLagi(e) {
   if (e) e.stopPropagation();
-  isKeranjangExpanded = false; // Pastikan keranjang tertutup agar tidak menghalangi form
+  isKeranjangExpanded = false; // Lipat keranjang agar tidak menghalangi
   renderKeranjang();
   
-  // Arahkan otomatis ke halaman atas / input barcode
+  // Gulir layar ke paling atas dan arahkan kursor ke kolom input barcode
   window.scrollTo({ top: 0, behavior: 'smooth' });
-  document.getElementById('manualBarcode').focus();
+  const inputBarcode = document.getElementById('manualBarcode');
+  if (inputBarcode) {
+    inputBarcode.focus();
+  }
   showToast('Silakan scan barang berikutnya', 'info');
 }
 
@@ -3129,11 +3140,10 @@ function kosongkanKeranjang() {
 }
 
 function simpanMassal(e) {
-  if (e) e.stopPropagation(); // Mencegah keranjang terbuka/tertutup saat tombol ditekan
+  if (e) e.stopPropagation(); 
   
   if (keranjangTransaksi.length === 0) return;
   
-  // Cari semua tombol simpan (di mode kecil maupun terbuka) dan ubah tulisannya
   const btns = document.querySelectorAll('#keranjangContainer .btn-primary');
   btns.forEach(btn => {
     btn.innerHTML = '⏳ MENYIMPAN...';
@@ -3150,7 +3160,7 @@ function simpanMassal(e) {
         isKeranjangExpanded = false; 
         renderKeranjang();
         
-        // Refresh data di background agar stok real-time
+        // Refresh data otomatis dari server agar stok real-time
         setTimeout(() => {
           if (typeof loadProduk === 'function') loadProduk();
           if (typeof loadDashboard === 'function') loadDashboard();
