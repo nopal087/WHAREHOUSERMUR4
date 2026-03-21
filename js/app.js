@@ -2878,67 +2878,242 @@ window.addEventListener('load', function() {
 });
 
 
+// // =============================================
+// // FITUR UI KERANJANG BATCH SCANNING
+// // =============================================
+// function renderKeranjang() {
+//   let container = document.getElementById('keranjangContainer');
+  
+//   // Jika container keranjangnya belum pernah dibuat, kita injek HTML-nya otomatis
+//   if (!container) {
+//     container = document.createElement('div');
+//     container.id = 'keranjangContainer';
+//     // Desain melayang di atas navigasi bawah (bottom: 80px)
+//     container.style.cssText = 'position: fixed; bottom: 80px; left: 15px; right: 15px; background: #fff; border-radius: 16px; box-shadow: 0 -10px 40px rgba(0,0,0,0.15); padding: 16px; z-index: 999; display: none; max-height: 55vh; flex-direction: column; border: 1px solid var(--border); transition: all 0.3s ease;';
+//     document.body.appendChild(container);
+//   }
+
+//   // Jika keranjang kosong, sembunyikan UI-nya
+//   if (keranjangTransaksi.length === 0) {
+//     container.style.display = 'none';
+//     return;
+//   }
+
+//   // Jika ada isinya, tampilkan!
+//   container.style.display = 'flex';
+  
+//   let html = `
+//     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 2px dashed var(--border); padding-bottom: 12px;">
+//       <h3 style="font-size: 15px; font-weight: 800; margin: 0; color: var(--accent);">🛒 Keranjang Scan (${keranjangTransaksi.length})</h3>
+//       <button onclick="kosongkanKeranjang()" style="background: rgba(220, 38, 38, 0.1); border: none; color: var(--red); font-size: 11px; font-weight: 800; padding: 6px 10px; border-radius: 8px;">BUANG SEMUA</button>
+//     </div>
+//     <div style="overflow-y: auto; flex: 1; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px; padding-right: 4px;">
+//   `;
+
+//   keranjangTransaksi.forEach((item, index) => {
+//     let badgeColor = item.tipe === 'MASUK' ? 'var(--green)' : (item.tipe === 'KELUAR' ? 'var(--red)' : '#f59e0b');
+//     let badgeBg = item.tipe === 'MASUK' ? 'rgba(22, 163, 74, 0.1)' : (item.tipe === 'KELUAR' ? 'rgba(220, 38, 38, 0.1)' : 'rgba(245, 158, 11, 0.1)');
+    
+//     html += `
+//       <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: #f8fafc;">
+//         <div style="flex: 1; overflow: hidden; margin-right: 10px;">
+//           <div style="font-weight: 700; font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px;">${item.namaProduk}</div>
+//           <div style="font-size: 11px; color: var(--text3); font-weight: 600;">
+//             <span style="color: ${badgeColor}; background: ${badgeBg}; padding: 2px 6px; border-radius: 4px;">${item.tipe}</span> 
+//             <span style="margin-left: 4px;">R${item.rak} L${item.lantai} B${item.baris}</span>
+//           </div>
+//         </div>
+//         <div style="display: flex; align-items: center; gap: 8px;">
+//           <span style="font-weight: 800; font-family: var(--font-mono); font-size: 15px; color: var(--accent); background: rgba(234, 108, 0, 0.1); padding: 4px 10px; border-radius: 6px;">${item.jumlah}</span>
+//           <button onclick="hapusItemKeranjang(${index})" style="background: none; color: var(--text3); border: 1px solid var(--border); border-radius: 6px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">✕</button>
+//         </div>
+//       </div>
+//     `;
+//   });
+
+//   html += `
+//     </div>
+//     <button onclick="simpanMassal()" class="btn btn-primary" style="width: 100%; font-size: 14px; font-weight: 800; padding: 14px; letter-spacing: 0.5px; box-shadow: 0 4px 12px rgba(234, 108, 0, 0.3);">
+//       🚀 SIMPAN ${keranjangTransaksi.length} DATA KE SERVER
+//     </button>
+//   `;
+
+//   container.innerHTML = html;
+// }
+
+// function hapusItemKeranjang(index) {
+//   keranjangTransaksi.splice(index, 1);
+//   renderKeranjang();
+// }
+
+// function kosongkanKeranjang() {
+//   if(confirm('Yakin ingin membuang semua barang dari keranjang?')) {
+//     keranjangTransaksi = [];
+//     renderKeranjang();
+//   }
+// }
+
+// function simpanMassal() {
+//   if (keranjangTransaksi.length === 0) return;
+  
+//   // Ubah tombol jadi loading visual
+//   const btn = document.querySelector('#keranjangContainer .btn-primary');
+//   btn.innerHTML = '⏳ SEDANG MENYIMPAN... JANGAN DITUTUP';
+//   btn.disabled = true;
+//   btn.style.opacity = '0.7';
+
+//   showLoading();
+//   callAPI('catatTransaksiMassal', keranjangTransaksi)
+//     .then(result => {
+//       hideLoading();
+//       if (result.success) {
+//         showToast(result.message, 'success');
+//         keranjangTransaksi = []; // Kosongkan keranjang setelah sukses
+//         renderKeranjang();
+        
+//         // Refresh data otomatis dari server agar Cache memori HP ter-update!
+//         setTimeout(() => {
+//           if (typeof loadProduk === 'function') loadProduk();
+//           if (typeof loadDashboard === 'function') loadDashboard();
+//         }, 500);
+//       } else {
+//         btn.innerHTML = '🚀 SIMPAN ULANG KE SERVER';
+//         btn.disabled = false;
+//         btn.style.opacity = '1';
+//         showToast('Gagal: ' + result.message, 'error');
+//       }
+//     })
+//     .catch(err => {
+//       hideLoading();
+//       btn.innerHTML = '🚀 SIMPAN ULANG KE SERVER';
+//       btn.disabled = false;
+//       btn.style.opacity = '1';
+//       showToast('Error koneksi: ' + err, 'error');
+//     });
+// }
+
+
+// Tambahkan variabel status ini di bagian paling atas (di bawah let keranjangTransaksi = [];)
+let isKeranjangExpanded = false;
+
 // =============================================
-// FITUR UI KERANJANG BATCH SCANNING
+// FITUR UI KERANJANG BATCH SCANNING (VERSI LIPAT & UX SCAN LAGI)
 // =============================================
 function renderKeranjang() {
   let container = document.getElementById('keranjangContainer');
   
-  // Jika container keranjangnya belum pernah dibuat, kita injek HTML-nya otomatis
   if (!container) {
     container = document.createElement('div');
     container.id = 'keranjangContainer';
-    // Desain melayang di atas navigasi bawah (bottom: 80px)
-    container.style.cssText = 'position: fixed; bottom: 80px; left: 15px; right: 15px; background: #fff; border-radius: 16px; box-shadow: 0 -10px 40px rgba(0,0,0,0.15); padding: 16px; z-index: 999; display: none; max-height: 55vh; flex-direction: column; border: 1px solid var(--border); transition: all 0.3s ease;';
+    // Desain CSS diperbarui: max-height dihapus agar bisa menyesuaikan mode lipat/buka
+    container.style.cssText = 'position: fixed; bottom: 80px; left: 15px; right: 15px; background: #fff; border-radius: 12px; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); z-index: 999; display: none; flex-direction: column; border: 1px solid var(--border); transition: all 0.3s ease; overflow: hidden;';
     document.body.appendChild(container);
   }
 
-  // Jika keranjang kosong, sembunyikan UI-nya
+  // Jika keranjang kosong, sembunyikan UI dan reset lipatan
   if (keranjangTransaksi.length === 0) {
     container.style.display = 'none';
+    isKeranjangExpanded = false;
     return;
   }
 
-  // Jika ada isinya, tampilkan!
   container.style.display = 'flex';
   
-  let html = `
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 2px dashed var(--border); padding-bottom: 12px;">
-      <h3 style="font-size: 15px; font-weight: 800; margin: 0; color: var(--accent);">🛒 Keranjang Scan (${keranjangTransaksi.length})</h3>
-      <button onclick="kosongkanKeranjang()" style="background: rgba(220, 38, 38, 0.1); border: none; color: var(--red); font-size: 11px; font-weight: 800; padding: 6px 10px; border-radius: 8px;">BUANG SEMUA</button>
-    </div>
-    <div style="overflow-y: auto; flex: 1; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px; padding-right: 4px;">
-  `;
-
-  keranjangTransaksi.forEach((item, index) => {
-    let badgeColor = item.tipe === 'MASUK' ? 'var(--green)' : (item.tipe === 'KELUAR' ? 'var(--red)' : '#f59e0b');
-    let badgeBg = item.tipe === 'MASUK' ? 'rgba(22, 163, 74, 0.1)' : (item.tipe === 'KELUAR' ? 'rgba(220, 38, 38, 0.1)' : 'rgba(245, 158, 11, 0.1)');
-    
-    html += `
-      <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: #f8fafc;">
-        <div style="flex: 1; overflow: hidden; margin-right: 10px;">
-          <div style="font-weight: 700; font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px;">${item.namaProduk}</div>
-          <div style="font-size: 11px; color: var(--text3); font-weight: 600;">
-            <span style="color: ${badgeColor}; background: ${badgeBg}; padding: 2px 6px; border-radius: 4px;">${item.tipe}</span> 
-            <span style="margin-left: 4px;">R${item.rak} L${item.lantai} B${item.baris}</span>
+  // ----------------------------------------------------
+  // MODE 1: KERANJANG TERTUTUP (KECIL / MINIMIZED)
+  // ----------------------------------------------------
+  if (!isKeranjangExpanded) {
+    container.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px;">
+        <div style="display: flex; align-items: center; gap: 10px; cursor: pointer; flex: 1;" onclick="toggleKeranjang()">
+          <span style="font-size: 22px;">🛒</span>
+          <div style="line-height: 1.2;">
+            <div style="font-weight: 800; font-size: 13px; color: var(--accent);">Keranjang (${keranjangTransaksi.length})</div>
+            <div style="font-size: 10px; color: var(--text3);">Ketuk untuk lihat detail</div>
           </div>
         </div>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="font-weight: 800; font-family: var(--font-mono); font-size: 15px; color: var(--accent); background: rgba(234, 108, 0, 0.1); padding: 4px 10px; border-radius: 6px;">${item.jumlah}</span>
-          <button onclick="hapusItemKeranjang(${index})" style="background: none; color: var(--text3); border: 1px solid var(--border); border-radius: 6px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">✕</button>
+        <div style="display: flex; gap: 6px;">
+          <button onclick="lanjutScanLagi(event)" class="btn btn-outline" style="padding: 8px 10px; font-size: 11px; font-weight: 800; border-radius: 8px; margin: 0; border: 2px solid var(--accent); color: var(--accent);">
+            📷 SCAN LAGI
+          </button>
+          <button onclick="simpanMassal(event)" class="btn btn-primary" style="padding: 8px 12px; font-size: 12px; font-weight: 800; border-radius: 8px; margin: 0; box-shadow: 0 4px 10px rgba(234, 108, 0, 0.3);">
+            🚀 SIMPAN
+          </button>
         </div>
       </div>
     `;
-  });
+  } 
+  // ----------------------------------------------------
+  // MODE 2: KERANJANG TERBUKA (DETAIL EXPANDED)
+  // ----------------------------------------------------
+  else {
+    let html = `
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px dashed var(--border);">
+        <h3 style="font-size: 14px; font-weight: 800; margin: 0; color: var(--accent);">🛒 Keranjang (${keranjangTransaksi.length} Item)</h3>
+        <div style="display: flex; gap: 6px;">
+          <button onclick="kosongkanKeranjang()" style="background: rgba(220, 38, 38, 0.1); border: none; color: var(--red); font-size: 10px; font-weight: 800; padding: 6px 10px; border-radius: 6px;">BUANG SEMUA</button>
+          <button onclick="toggleKeranjang()" style="background: var(--bg3); border: none; color: var(--text2); font-size: 10px; font-weight: 800; padding: 6px 10px; border-radius: 6px;">TUTUP 🔽</button>
+        </div>
+      </div>
+      <div style="overflow-y: auto; max-height: 40vh; display: flex; flex-direction: column; gap: 8px; padding: 12px 16px;">
+    `;
 
-  html += `
-    </div>
-    <button onclick="simpanMassal()" class="btn btn-primary" style="width: 100%; font-size: 14px; font-weight: 800; padding: 14px; letter-spacing: 0.5px; box-shadow: 0 4px 12px rgba(234, 108, 0, 0.3);">
-      🚀 SIMPAN ${keranjangTransaksi.length} DATA KE SERVER
-    </button>
-  `;
+    keranjangTransaksi.forEach((item, index) => {
+      let badgeColor = item.tipe === 'MASUK' ? 'var(--green)' : (item.tipe === 'KELUAR' ? 'var(--red)' : '#f59e0b');
+      let badgeBg = item.tipe === 'MASUK' ? 'rgba(22, 163, 74, 0.1)' : (item.tipe === 'KELUAR' ? 'rgba(220, 38, 38, 0.1)' : 'rgba(245, 158, 11, 0.1)');
+      
+      html += `
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: #f8fafc;">
+          <div style="flex: 1; overflow: hidden; margin-right: 10px;">
+            <div style="font-weight: 700; font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px;">${item.namaProduk}</div>
+            <div style="font-size: 11px; color: var(--text3); font-weight: 600;">
+              <span style="color: ${badgeColor}; background: ${badgeBg}; padding: 2px 6px; border-radius: 4px;">${item.tipe}</span> 
+              <span style="margin-left: 4px;">R${item.rak} L${item.lantai} B${item.baris}</span>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-weight: 800; font-family: var(--font-mono); font-size: 15px; color: var(--accent); background: rgba(234, 108, 0, 0.1); padding: 4px 8px; border-radius: 6px;">${item.jumlah}</span>
+            <button onclick="hapusItemKeranjang(${index})" style="background: none; color: var(--text3); border: 1px solid var(--border); border-radius: 6px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">✕</button>
+          </div>
+        </div>
+      `;
+    });
 
-  container.innerHTML = html;
+    html += `
+      </div>
+      <div style="padding: 12px 16px; border-top: 1px solid var(--border); display: flex; gap: 8px;">
+        <button onclick="lanjutScanLagi(event)" class="btn btn-outline" style="flex: 1; font-size: 13px; font-weight: 800; padding: 12px; border: 2px solid var(--accent); color: var(--accent);">
+          📷 SCAN LAGI
+        </button>
+        <button onclick="simpanMassal(event)" class="btn btn-primary" style="flex: 1.5; font-size: 13px; font-weight: 800; padding: 12px; box-shadow: 0 4px 12px rgba(234, 108, 0, 0.3);">
+          🚀 SIMPAN (${keranjangTransaksi.length})
+        </button>
+      </div>
+    `;
+    container.innerHTML = html;
+  }
+}
+
+// =============================================
+// FUNGSI PENDUKUNG KERANJANG
+// =============================================
+
+// Fungsi untuk membuka/menutup lipatan keranjang
+function toggleKeranjang() {
+  isKeranjangExpanded = !isKeranjangExpanded;
+  renderKeranjang();
+}
+
+// UX Cerdas: Arahkan kursor kembali ke kotak scan
+function lanjutScanLagi(e) {
+  if (e) e.stopPropagation();
+  isKeranjangExpanded = false; // Pastikan keranjang tertutup agar tidak menghalangi form
+  renderKeranjang();
+  
+  // Arahkan otomatis ke halaman atas / input barcode
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  document.getElementById('manualBarcode').focus();
+  showToast('Silakan scan barang berikutnya', 'info');
 }
 
 function hapusItemKeranjang(index) {
@@ -2953,14 +3128,17 @@ function kosongkanKeranjang() {
   }
 }
 
-function simpanMassal() {
+function simpanMassal(e) {
+  if (e) e.stopPropagation(); // Mencegah keranjang terbuka/tertutup saat tombol ditekan
+  
   if (keranjangTransaksi.length === 0) return;
   
-  // Ubah tombol jadi loading visual
-  const btn = document.querySelector('#keranjangContainer .btn-primary');
-  btn.innerHTML = '⏳ SEDANG MENYIMPAN... JANGAN DITUTUP';
-  btn.disabled = true;
-  btn.style.opacity = '0.7';
+  // Cari semua tombol simpan (di mode kecil maupun terbuka) dan ubah tulisannya
+  const btns = document.querySelectorAll('#keranjangContainer .btn-primary');
+  btns.forEach(btn => {
+    btn.innerHTML = '⏳ MENYIMPAN...';
+    btn.disabled = true;
+  });
 
   showLoading();
   callAPI('catatTransaksiMassal', keranjangTransaksi)
@@ -2968,26 +3146,23 @@ function simpanMassal() {
       hideLoading();
       if (result.success) {
         showToast(result.message, 'success');
-        keranjangTransaksi = []; // Kosongkan keranjang setelah sukses
+        keranjangTransaksi = []; 
+        isKeranjangExpanded = false; 
         renderKeranjang();
         
-        // Refresh data otomatis dari server agar Cache memori HP ter-update!
+        // Refresh data di background agar stok real-time
         setTimeout(() => {
           if (typeof loadProduk === 'function') loadProduk();
           if (typeof loadDashboard === 'function') loadDashboard();
         }, 500);
       } else {
-        btn.innerHTML = '🚀 SIMPAN ULANG KE SERVER';
-        btn.disabled = false;
-        btn.style.opacity = '1';
+        btns.forEach(btn => { btn.innerHTML = '🚀 SIMPAN ULANG'; btn.disabled = false; });
         showToast('Gagal: ' + result.message, 'error');
       }
     })
     .catch(err => {
       hideLoading();
-      btn.innerHTML = '🚀 SIMPAN ULANG KE SERVER';
-      btn.disabled = false;
-      btn.style.opacity = '1';
+      btns.forEach(btn => { btn.innerHTML = '🚀 SIMPAN ULANG'; btn.disabled = false; });
       showToast('Error koneksi: ' + err, 'error');
     });
 }
