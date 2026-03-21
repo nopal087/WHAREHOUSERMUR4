@@ -2796,3 +2796,67 @@ window.addEventListener('load', function() {
     }
   }, 800); // Tampil selama 0.8 detik
 });
+
+
+
+// =============================================
+// INTEGRASI HARDWARE SCANNER FISIK / PDA ANDROID
+// =============================================
+let barcodeBuffer = '';
+let barcodeTimer = null;
+
+document.addEventListener('keydown', function(e) {
+  // 1. CEK FOKUS INPUT
+  // Jika user sedang sengaja mengetik di kolom pencarian atau input text manual,
+  // biarkan berjalan normal (jangan diinterupsi oleh global scanner)
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+    return;
+  }
+
+  // 2. DETEKSI TOMBOL ENTER DARI SCANNER FISIK
+  // Scanner selalu mengirim perintah 'Enter' di akhir setiap scan barcode
+  if (e.key === 'Enter') {
+    if (barcodeBuffer.length >= 3) {
+      const scannedCode = barcodeBuffer;
+      console.log("📟 Input dari Hardware Scanner: ", scannedCode);
+      
+      // Mainkan suara beep khas mesin kasir/scanner
+      if (typeof playBeep === 'function') playBeep();
+      
+      // ROUTING CERDAS: Arahkan barcode ke fungsi yang tepat
+      // A. Jika ada modal (jendela pop-up) yang sedang terbuka, kirim ke form tersebut
+      if (document.getElementById('modalProduk').classList.contains('show') || 
+          document.getElementById('modalDetailProduk').classList.contains('show')) {
+         handleModalBarcode(scannedCode);
+      } 
+      // B. Jika tidak ada modal, asumsikan ini adalah transaksi reguler (Masuk/Keluar/Opname)
+      else {
+         // Pindah ke halaman Scan secara otomatis jika belum di sana
+         if (currentPage !== 'scan') {
+           showPage('scan', null);
+           // Beri jeda 300ms agar halaman berganti dengan mulus sebelum mencari data
+           setTimeout(() => processBarcode(scannedCode), 300);
+         } else {
+           processBarcode(scannedCode);
+         }
+      }
+    }
+    // Bersihkan buffer setelah selesai diproses
+    barcodeBuffer = ''; 
+    return;
+  }
+
+  // 3. REKAM KARAKTER BARCODE
+  // Abaikan tombol fungsional seperti Shift, Ctrl, Alt (panjang karakternya > 1)
+  if (e.key.length === 1) {
+    barcodeBuffer += e.key;
+
+    // Reset buffer jika ada jeda lebih dari 100 milidetik antar ketikan.
+    // Manusia ngetik butuh waktu > 100ms per huruf. Scanner butuh < 20ms per huruf.
+    // Ini mencegah ketikan iseng manusia dianggap sebagai barcode.
+    clearTimeout(barcodeTimer);
+    barcodeTimer = setTimeout(() => {
+      barcodeBuffer = '';
+    }, 100); 
+  }
+});
