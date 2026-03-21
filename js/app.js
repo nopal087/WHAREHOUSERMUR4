@@ -1464,6 +1464,59 @@ function buildKategoriFilter(data) {
 
 
 
+// function renderProdukTable(data) {
+//   const tbody = document.getElementById('produk-tbody');
+//   if (!data || data.length === 0) {
+//     tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📦</div><p>Belum ada produk. Tambahkan produk pertama!</p></div></td></tr>';
+//     return;
+//   }
+  
+//   tbody.innerHTML = data.map(p => {
+//     const stokClass = p.stok <= 0 ? 'stok-warning' : p.stok <= 5 ? 'stok-low' : 'stok-ok';
+    
+//     // [PERBAIKAN] Menampilkan Multi-Lokasi
+//     let lokasiHtml = '';
+//     if (p.listLokasi && p.listLokasi.length > 0) {
+//       // Jika terdaftar di banyak rak
+//       lokasiHtml = p.listLokasi.map(l => 
+//         `<div style="margin-bottom:4px; font-size:11px; background:var(--bg3); padding:3px 6px; border-radius:4px; display:inline-block; border:1px solid var(--border); white-space:nowrap;">
+//           <strong>R${l.rak} L${l.lantai} B${l.baris}</strong> 
+//           <span style="color:var(--accent); font-weight:700; margin-left:4px;">(${l.jumlah})</span>
+//          </div>`
+//       ).join('<br>');
+//     } else if (p.rak) {
+//       // Jika data lama hanya punya lokasi utama
+//       lokasiHtml = `<div style="font-size:11px; background:var(--bg3); padding:3px 6px; border-radius:4px; display:inline-block; border:1px solid var(--border);">
+//           <strong>R${p.rak} L${p.lantai} B${p.baris}</strong>
+//          </div>`;
+//     } else {
+//       lokasiHtml = '<span style="color:var(--text3)">—</span>';
+//     }
+
+//     return `
+//       <tr>
+//         <td class="barcode-cell">${p.barcode}</td>
+//         <td><strong>${p.nama}</strong><div style="font-size:11px;color:var(--text3)">${p.deskripsi||''}</div></td>
+//         <td><span class="badge badge-blue">${p.kategori||'—'}</span></td>
+//         <td><span class="stok-badge ${stokClass}">${p.stok}</span></td>
+//         <td style="color:var(--text3)">${p.satuan}</td>
+        
+//         <td style="font-family:var(--font-mono); line-height:1.2;">${lokasiHtml}</td>
+        
+//         <td style="font-size:13px; color:var(--text3); font-weight:600;">${p.operator || '—'}</td>
+        
+//         <td>
+//           <div class="td-actions">
+//             <button class="btn btn-outline btn-sm btn-icon" onclick="editProdukById('${p.id}')" title="Edit">✏️</button>
+//             <button class="btn btn-danger btn-sm btn-icon" onclick="hapusProdukModal('${p.id}','${p.nama.replace(/'/g,'\\\'')}')" title="Hapus">🗑️</button>
+//             <button class="btn btn-outline btn-sm btn-icon" onclick="cetakBarcode('${p.barcode}', '${p.nama}')" title="Cetak Label Barcode">🖨️</button>
+//           </div>
+//         </td>
+//       </tr>
+//     `;
+//   }).join('');
+// }
+
 function renderProdukTable(data) {
   const tbody = document.getElementById('produk-tbody');
   if (!data || data.length === 0) {
@@ -1474,10 +1527,9 @@ function renderProdukTable(data) {
   tbody.innerHTML = data.map(p => {
     const stokClass = p.stok <= 0 ? 'stok-warning' : p.stok <= 5 ? 'stok-low' : 'stok-ok';
     
-    // [PERBAIKAN] Menampilkan Multi-Lokasi
+    // 1. TAMPILAN LOKASI (Tetap sama seperti milik Anda)
     let lokasiHtml = '';
     if (p.listLokasi && p.listLokasi.length > 0) {
-      // Jika terdaftar di banyak rak
       lokasiHtml = p.listLokasi.map(l => 
         `<div style="margin-bottom:4px; font-size:11px; background:var(--bg3); padding:3px 6px; border-radius:4px; display:inline-block; border:1px solid var(--border); white-space:nowrap;">
           <strong>R${l.rak} L${l.lantai} B${l.baris}</strong> 
@@ -1485,7 +1537,6 @@ function renderProdukTable(data) {
          </div>`
       ).join('<br>');
     } else if (p.rak) {
-      // Jika data lama hanya punya lokasi utama
       lokasiHtml = `<div style="font-size:11px; background:var(--bg3); padding:3px 6px; border-radius:4px; display:inline-block; border:1px solid var(--border);">
           <strong>R${p.rak} L${p.lantai} B${p.baris}</strong>
          </div>`;
@@ -1493,16 +1544,34 @@ function renderProdukTable(data) {
       lokasiHtml = '<span style="color:var(--text3)">—</span>';
     }
 
+    // ==========================================
+    // 2. UX BARU: MULTI-TAGS UNTUK SATUAN
+    // ==========================================
+    let satuanHtml = '';
+    if (p.satuan) {
+      // Memisahkan teks berdasarkan koma (,) atau garis miring (/)
+      const listSatuan = String(p.satuan).split(/[,/]/).map(s => s.trim()).filter(s => s !== '');
+      
+      satuanHtml = listSatuan.map(s => 
+        `<span style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; font-size: 11px; padding: 3px 8px; border-radius: 6px; margin-right: 4px; margin-bottom: 4px; display: inline-block; font-weight: 600; text-transform: uppercase;">
+          ${s}
+        </span>`
+      ).join('');
+    } else {
+      satuanHtml = '<span style="color:var(--text3)">—</span>';
+    }
+    // ==========================================
+
     return `
       <tr>
         <td class="barcode-cell">${p.barcode}</td>
         <td><strong>${p.nama}</strong><div style="font-size:11px;color:var(--text3)">${p.deskripsi||''}</div></td>
         <td><span class="badge badge-blue">${p.kategori||'—'}</span></td>
         <td><span class="stok-badge ${stokClass}">${p.stok}</span></td>
-        <td style="color:var(--text3)">${p.satuan}</td>
+        
+        <td>${satuanHtml}</td>
         
         <td style="font-family:var(--font-mono); line-height:1.2;">${lokasiHtml}</td>
-        
         <td style="font-size:13px; color:var(--text3); font-weight:600;">${p.operator || '—'}</td>
         
         <td>
@@ -1933,44 +2002,113 @@ function loadLokasi() {
     });
 }
 
+// function renderRakGrid() {
+//   const grid = document.getElementById('rakGrid');
+//   let html = '';
+
+//   for (let r = 1; r <= 8; r++) {
+//     const rakItems = lokasiData.filter(l => l.rak == r);
+//     const occupied = rakItems.length;
+//     const capacity = 3 * 4; // 3 lantai × 4 baris
+    
+//     html += `<div class="rak-card">
+//       <div class="rak-header">
+//         <span>🗄️ RAK ${r}</span>
+//         <span style="font-size:11px;color:var(--text3)">${occupied}/${capacity}</span>
+//       </div>`;
+
+//     for (let lt = 1; lt <= 3; lt++) {
+//       html += `<div class="lantai-group">
+//         <div class="lantai-label">LANTAI ${lt}</div>
+//         <div class="baris-row">`;
+      
+//       for (let b = 1; b <= 4; b++) {
+//         const item = lokasiData.find(l => l.rak == r && l.lantai == lt && l.baris == b);
+//         if (item) {
+//           html += `<div class="baris-slot occupied" onclick="showLokasiDetail(${r},${lt},${b})" title="${item.namaProduk} (${item.jumlah})">B${b}</div>`;
+//         } else {
+//           html += `<div class="baris-slot empty" title="Kosong">B${b}</div>`;
+//         }
+//       }
+      
+//       html += `</div></div>`;
+//     }
+
+//     html += `</div>`;
+//   }
+
+//   grid.innerHTML = html;
+// }
+
 function renderRakGrid() {
   const grid = document.getElementById('rakGrid');
   let html = '';
 
   for (let r = 1; r <= 8; r++) {
     const rakItems = lokasiData.filter(l => l.rak == r);
-    const occupied = rakItems.length;
-    const capacity = 3 * 4; // 3 lantai × 4 baris
+    const uniqueSlots = new Set(rakItems.map(l => `${l.lantai}-${l.baris}`));
+    const occupied = uniqueSlots.size;
+    const capacity = 3 * 4;
     
-    html += `<div class="rak-card">
-      <div class="rak-header">
-        <span>🗄️ RAK ${r}</span>
-        <span style="font-size:11px;color:var(--text3)">${occupied}/${capacity}</span>
+    // Header Rak
+    html += `<div class="rak-card" style="margin-bottom: 24px; background: #ffffff; border: 1px solid var(--border); border-radius: 12px; padding: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+      <div class="rak-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px dashed var(--border);">
+        <span style="font-weight: 800; font-size: 16px; letter-spacing: 0.5px;">🗄️ RAK ${r}</span>
+        <span style="font-size: 12px; font-weight: 700; color: var(--accent); background: rgba(234, 108, 0, 0.1); padding: 4px 10px; border-radius: 20px;">Terisi ${occupied}/${capacity}</span>
       </div>`;
 
     for (let lt = 1; lt <= 3; lt++) {
-      html += `<div class="lantai-group">
-        <div class="lantai-label">LANTAI ${lt}</div>
-        <div class="baris-row">`;
+      html += `<div class="lantai-group" style="margin-bottom: 16px;">
+        <div class="lantai-label" style="font-size: 11px; font-weight: 800; letter-spacing: 1.5px; color: var(--text3); margin-bottom: 8px; text-transform: uppercase;">
+          📍 Lantai ${lt}
+        </div>
+        
+        <div class="baris-list" style="display: flex; flex-direction: column; gap: 6px;">`;
       
       for (let b = 1; b <= 4; b++) {
-        const item = lokasiData.find(l => l.rak == r && l.lantai == lt && l.baris == b);
-        if (item) {
-          html += `<div class="baris-slot occupied" onclick="showLokasiDetail(${r},${lt},${b})" title="${item.namaProduk} (${item.jumlah})">B${b}</div>`;
+        const itemsInSlot = lokasiData.filter(l => l.rak == r && l.lantai == lt && l.baris == b);
+        
+        if (itemsInSlot.length > 0) {
+          // JIKA ADA BARANGNYA
+          const totalQty = itemsInSlot.reduce((sum, item) => sum + (parseInt(item.jumlah) || 0), 0);
+          let namaTeks = itemsInSlot.length === 1 ? itemsInSlot[0].namaProduk : itemsInSlot.length + ' Macam Barang';
+          
+          html += `
+            <div class="slot-item occupied" onclick="showLokasiDetail(${r},${lt},${b})"
+                 style="display: flex; align-items: center; justify-content: space-between; background: #fff; border: 1px solid rgba(234, 108, 0, 0.3); border-left: 5px solid var(--accent); padding: 10px 14px; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+              
+              <div style="display: flex; align-items: center; gap: 12px; overflow: hidden; flex: 1;">
+                <span style="font-weight: 800; font-size: 14px; color: var(--accent);">B${b}</span>
+                <div style="width: 1px; height: 16px; background: var(--border);"></div>
+                <span style="font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  ${namaTeks}
+                </span>
+              </div>
+              
+              <span style="font-size: 12px; font-family: var(--font-mono); font-weight: 700; background: var(--accent); color: #fff; padding: 4px 8px; border-radius: 6px; flex-shrink: 0; margin-left: 8px;">
+                ${totalQty} pcs
+              </span>
+              
+            </div>`;
         } else {
-          html += `<div class="baris-slot empty" title="Kosong">B${b}</div>`;
+          // JIKA SLOT KOSONG (Desainnya dibuat pudar/redup agar tidak mendistraksi mata)
+          html += `
+            <div class="slot-item empty" title="Kosong"
+                 style="display: flex; align-items: center; background: #f8fafc; border: 1px dashed var(--border); padding: 8px 14px; border-radius: 8px;">
+              <span style="font-weight: 700; font-size: 13px; color: var(--text3); width: 30px;">B${b}</span>
+              <span style="font-size: 12px; color: var(--text3); font-style: italic;">(Slot Kosong)</span>
+            </div>`;
         }
       }
       
-      html += `</div></div>`;
+      html += `</div></div>`; // Tutup baris-list dan lantai-group
     }
 
-    html += `</div>`;
+    html += `</div>`; // Tutup rak-card
   }
 
   grid.innerHTML = html;
 }
-
 function showLokasiDetail(rak, lantai, baris) {
   const items = lokasiData.filter(l => l.rak == rak && l.lantai == lantai && l.baris == baris);
   
