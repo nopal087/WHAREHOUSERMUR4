@@ -11,6 +11,7 @@ let deleteTargetId = '';
 let lokasiData = [];
 let riwayatMasukData = [];
 let riwayatKeluarData = [];
+let keranjangTransaksi = [];
 
 // Variabel global untuk Html5Qrcode
 let html5QrCode = null;
@@ -1232,6 +1233,119 @@ function setTipeTransaksi(tipe) {
 // =============================================
 // TRANSAKSI
 // =============================================
+// function submitTransaksi() {
+//   if (!currentScanResult) { showToast('Scan atau cari produk terlebih dahulu', 'error'); return; }
+  
+//   const operator = document.getElementById('txOperator').value.trim();
+//   if (!operator) { showToast('Nama Operator wajib diisi!', 'error'); return; }
+
+//   let jumlah = parseInt(document.getElementById('txJumlah').value);
+//   if (isNaN(jumlah) || (currentTipeTransaksi !== 'OPNAME' && jumlah <= 0) || (currentTipeTransaksi === 'OPNAME' && jumlah < 0)) { 
+//     showToast('Masukkan jumlah yang valid', 'error'); return; 
+//   }
+
+//   const rak = document.getElementById('txRak').value;
+//   const lantai = document.getElementById('txLantai').value;
+//   const baris = document.getElementById('txBaris').value;
+
+//   if (!rak || !lantai || !baris) {
+//     showToast('Pilih lokasi rak, lantai, dan baris', 'error'); return;
+//   }
+
+//   let finalTipe = currentTipeTransaksi;
+//   let finalJumlah = jumlah;
+//   let finalCatatan = document.getElementById('txCatatan').value;
+
+//   // Cari data lokasi di memori
+//   const lokasiTujuan = (window.currentLokasiProduk || []).find(
+//     l => l.rak == rak && l.lantai == lantai && l.baris == baris
+//   );
+//   const stokDiLokasi = lokasiTujuan ? (parseInt(lokasiTujuan.jumlah) || 0) : 0;
+
+//   // VALIDASI KELUAR
+//   if (currentTipeTransaksi === 'KELUAR') {
+//     if (!lokasiTujuan) {
+//       showToast(`❌ Barang tidak ditemukan di Rak ${rak} L${lantai} B${baris}!`, 'error'); return;
+//     }
+//     if (jumlah > stokDiLokasi) {
+//       showToast(`❌ Stok tidak cukup! Hanya tersisa ${stokDiLokasi} di lokasi ini.`, 'error'); return;
+//     }
+//   }
+
+//   // LOGIKA CERDAS OPNAME
+//   if (currentTipeTransaksi === 'OPNAME') {
+//     let selisih = jumlah - stokDiLokasi;
+
+//     if (selisih === 0) {
+//       showToast(`✅ Stok fisik di Rak ${rak} sesuai dengan sistem (${stokDiLokasi} pcs). Tidak ada koreksi.`, 'info');
+//       return; 
+//     }
+
+//     if (selisih > 0) {
+//       finalTipe = 'MASUK';
+//       finalJumlah = selisih; 
+//       finalCatatan = 'Koreksi Opname (Kelebihan Fisik) | ' + finalCatatan;
+//     } else {
+//       finalTipe = 'KELUAR';
+//       finalJumlah = Math.abs(selisih); 
+//       finalCatatan = 'Koreksi Opname (Barang Hilang) | ' + finalCatatan;
+//     }
+//   }
+
+//   showLoading();
+//   const data = {
+//     barcode: currentScanResult.barcode,
+//     namaProduk: currentScanResult.nama,
+//     tipe: finalTipe, // Bisa berubah otomatis jadi MASUK/KELUAR jika Opname
+//     jumlah: finalJumlah,
+//     rak: rak, lantai: lantai, baris: baris,
+//     catatan: finalCatatan,
+//     operator: operator 
+//   };
+
+//   callAPI('catatTransaksi', data)
+//     .then(result => {
+//       hideLoading();
+//       if (result.success) {
+//         showToast('Transaksi berhasil dicatat!', 'success');
+//         if (typeof playBeep === 'function') playBeep();
+        
+//         document.getElementById('txJumlah').value = 1;
+//         document.getElementById('txCatatan').value = '';
+//         document.getElementById('txRak').value = '';
+//         document.getElementById('txLantai').value = '';
+//         document.getElementById('txBaris').value = '';
+        
+//         // === MODE BERUNTUN (RAPID SCAN) ===
+//         if (window._isRapidScanMode) {
+//           const tipeLanjutan = currentTipeTransaksi;
+//           document.getElementById('resultFound').classList.remove('show');
+//           document.getElementById('resultEmpty').style.display = 'block';
+//           currentScanResult = null;
+//           window.currentLokasiProduk = [];
+          
+//           showToast('Memulai scan berikutnya...', 'info');
+//           setTimeout(() => {
+//             startQuickScan(tipeLanjutan);
+//           }, 500);
+
+//         } else {
+//           document.getElementById('resultFound').classList.remove('show');
+//           document.getElementById('resultEmpty').style.display = 'block';
+//           document.getElementById('manualBarcode').value = '';
+//           currentScanResult = null;
+//           window.currentLokasiProduk = []; 
+//           if(typeof loadDashboard === 'function') loadDashboard();
+//         }
+
+//       } else { showToast('Gagal: ' + result.message, 'error'); }
+//     })
+//     .catch(err => { hideLoading(); showToast('Error: ' + err, 'error'); });
+// }
+
+// =============================================
+// TRANSAKSI (VERSI BATCH SCANNING / KERANJANG)
+// =============================================
 function submitTransaksi() {
   if (!currentScanResult) { showToast('Scan atau cari produk terlebih dahulu', 'error'); return; }
   
@@ -1247,99 +1361,65 @@ function submitTransaksi() {
   const lantai = document.getElementById('txLantai').value;
   const baris = document.getElementById('txBaris').value;
 
-  if (!rak || !lantai || !baris) {
-    showToast('Pilih lokasi rak, lantai, dan baris', 'error'); return;
-  }
+  if (!rak || !lantai || !baris) { showToast('Pilih lokasi rak, lantai, dan baris', 'error'); return; }
 
   let finalTipe = currentTipeTransaksi;
   let finalJumlah = jumlah;
   let finalCatatan = document.getElementById('txCatatan').value;
 
-  // Cari data lokasi di memori
-  const lokasiTujuan = (window.currentLokasiProduk || []).find(
-    l => l.rak == rak && l.lantai == lantai && l.baris == baris
-  );
+  const lokasiTujuan = (window.currentLokasiProduk || []).find(l => l.rak == rak && l.lantai == lantai && l.baris == baris);
   const stokDiLokasi = lokasiTujuan ? (parseInt(lokasiTujuan.jumlah) || 0) : 0;
 
-  // VALIDASI KELUAR
+  // VALIDASI KELUAR (Cek sisa stok asli - barang yang sudah masuk keranjang)
   if (currentTipeTransaksi === 'KELUAR') {
-    if (!lokasiTujuan) {
-      showToast(`❌ Barang tidak ditemukan di Rak ${rak} L${lantai} B${baris}!`, 'error'); return;
-    }
-    if (jumlah > stokDiLokasi) {
-      showToast(`❌ Stok tidak cukup! Hanya tersisa ${stokDiLokasi} di lokasi ini.`, 'error'); return;
+    if (!lokasiTujuan) { showToast(`❌ Barang tidak ditemukan di Rak ${rak} L${lantai} B${baris}!`, 'error'); return; }
+    
+    // Hitung juga barang yang sudah ada di keranjang agar tidak over-scan
+    let qtyDiKeranjang = keranjangTransaksi.filter(k => k.barcode === currentScanResult.barcode && k.tipe === 'KELUAR').reduce((sum, k) => sum + k.jumlah, 0);
+    if ((jumlah + qtyDiKeranjang) > stokDiLokasi) {
+      showToast(`❌ Stok tidak cukup! Hanya tersisa ${stokDiLokasi - qtyDiKeranjang} yang bisa diambil.`, 'error'); return;
     }
   }
 
-  // LOGIKA CERDAS OPNAME
   if (currentTipeTransaksi === 'OPNAME') {
     let selisih = jumlah - stokDiLokasi;
-
-    if (selisih === 0) {
-      showToast(`✅ Stok fisik di Rak ${rak} sesuai dengan sistem (${stokDiLokasi} pcs). Tidak ada koreksi.`, 'info');
-      return; 
-    }
-
-    if (selisih > 0) {
-      finalTipe = 'MASUK';
-      finalJumlah = selisih; 
-      finalCatatan = 'Koreksi Opname (Kelebihan Fisik) | ' + finalCatatan;
-    } else {
-      finalTipe = 'KELUAR';
-      finalJumlah = Math.abs(selisih); 
-      finalCatatan = 'Koreksi Opname (Barang Hilang) | ' + finalCatatan;
-    }
+    if (selisih === 0) { showToast(`✅ Stok fisik sesuai sistem.`, 'info'); return; }
+    if (selisih > 0) { finalTipe = 'MASUK'; finalJumlah = selisih; finalCatatan = 'Koreksi Opname (+)' + (finalCatatan ? ' | '+finalCatatan : ''); } 
+    else { finalTipe = 'KELUAR'; finalJumlah = Math.abs(selisih); finalCatatan = 'Koreksi Opname (-)' + (finalCatatan ? ' | '+finalCatatan : ''); }
   }
 
-  showLoading();
-  const data = {
-    barcode: currentScanResult.barcode,
-    namaProduk: currentScanResult.nama,
-    tipe: finalTipe, // Bisa berubah otomatis jadi MASUK/KELUAR jika Opname
-    jumlah: finalJumlah,
-    rak: rak, lantai: lantai, baris: baris,
-    catatan: finalCatatan,
-    operator: operator 
-  };
+  // --- LOGIKA KERANJANG PINTAR ---
+  const data = { barcode: currentScanResult.barcode, namaProduk: currentScanResult.nama, tipe: finalTipe, jumlah: finalJumlah, rak: rak, lantai: lantai, baris: baris, catatan: finalCatatan, operator: operator };
 
-  callAPI('catatTransaksi', data)
-    .then(result => {
-      hideLoading();
-      if (result.success) {
-        showToast('Transaksi berhasil dicatat!', 'success');
-        if (typeof playBeep === 'function') playBeep();
-        
-        document.getElementById('txJumlah').value = 1;
-        document.getElementById('txCatatan').value = '';
-        document.getElementById('txRak').value = '';
-        document.getElementById('txLantai').value = '';
-        document.getElementById('txBaris').value = '';
-        
-        // === MODE BERUNTUN (RAPID SCAN) ===
-        if (window._isRapidScanMode) {
-          const tipeLanjutan = currentTipeTransaksi;
-          document.getElementById('resultFound').classList.remove('show');
-          document.getElementById('resultEmpty').style.display = 'block';
-          currentScanResult = null;
-          window.currentLokasiProduk = [];
-          
-          showToast('Memulai scan berikutnya...', 'info');
-          setTimeout(() => {
-            startQuickScan(tipeLanjutan);
-          }, 500);
+  // Cek apakah barang yang sama dengan tujuan rak yang sama sudah ada di keranjang?
+  const existingIndex = keranjangTransaksi.findIndex(item => item.barcode === data.barcode && item.tipe === data.tipe && item.rak === data.rak && item.lantai === data.lantai && item.baris === data.baris);
 
-        } else {
-          document.getElementById('resultFound').classList.remove('show');
-          document.getElementById('resultEmpty').style.display = 'block';
-          document.getElementById('manualBarcode').value = '';
-          currentScanResult = null;
-          window.currentLokasiProduk = []; 
-          if(typeof loadDashboard === 'function') loadDashboard();
-        }
+  if (existingIndex > -1 && currentTipeTransaksi !== 'OPNAME') {
+    // Jika sudah ada, tambahkan saja angkanya (Contoh: scan indomie 3x = jumlahnya otomatis jadi 3)
+    keranjangTransaksi[existingIndex].jumlah += data.jumlah;
+  } else {
+    // Jika belum ada, buat baris baru di keranjang
+    keranjangTransaksi.push(data);
+  }
 
-      } else { showToast('Gagal: ' + result.message, 'error'); }
-    })
-    .catch(err => { hideLoading(); showToast('Error: ' + err, 'error'); });
+  showToast('Masuk Keranjang!', 'success');
+  if (typeof playBeep === 'function') playBeep();
+  
+  // RESET UI UNTUK SCAN BERIKUTNYA
+  document.getElementById('txJumlah').value = 1;
+  document.getElementById('txCatatan').value = '';
+  // (Rak, Lantai, Baris dibiarkan agar user tidak perlu repot pilih ulang jika barang di rak yang sama)
+  
+  document.getElementById('resultFound').classList.remove('show');
+  document.getElementById('resultEmpty').style.display = 'block';
+  document.getElementById('manualBarcode').value = '';
+  currentScanResult = null;
+  window.currentLokasiProduk = []; 
+
+  // PANGGIL UI KERANJANG
+  renderKeranjang();
+
+  if (window._isRapidScanMode) { setTimeout(() => startQuickScan(currentTipeTransaksi), 400); }
 }
 
 // =============================================
@@ -2797,6 +2877,120 @@ window.addEventListener('load', function() {
   }, 800); // Tampil selama 0.8 detik
 });
 
+
+// =============================================
+// FITUR UI KERANJANG BATCH SCANNING
+// =============================================
+function renderKeranjang() {
+  let container = document.getElementById('keranjangContainer');
+  
+  // Jika container keranjangnya belum pernah dibuat, kita injek HTML-nya otomatis
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'keranjangContainer';
+    // Desain melayang di atas navigasi bawah (bottom: 80px)
+    container.style.cssText = 'position: fixed; bottom: 80px; left: 15px; right: 15px; background: #fff; border-radius: 16px; box-shadow: 0 -10px 40px rgba(0,0,0,0.15); padding: 16px; z-index: 999; display: none; max-height: 55vh; flex-direction: column; border: 1px solid var(--border); transition: all 0.3s ease;';
+    document.body.appendChild(container);
+  }
+
+  // Jika keranjang kosong, sembunyikan UI-nya
+  if (keranjangTransaksi.length === 0) {
+    container.style.display = 'none';
+    return;
+  }
+
+  // Jika ada isinya, tampilkan!
+  container.style.display = 'flex';
+  
+  let html = `
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 2px dashed var(--border); padding-bottom: 12px;">
+      <h3 style="font-size: 15px; font-weight: 800; margin: 0; color: var(--accent);">🛒 Keranjang Scan (${keranjangTransaksi.length})</h3>
+      <button onclick="kosongkanKeranjang()" style="background: rgba(220, 38, 38, 0.1); border: none; color: var(--red); font-size: 11px; font-weight: 800; padding: 6px 10px; border-radius: 8px;">BUANG SEMUA</button>
+    </div>
+    <div style="overflow-y: auto; flex: 1; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px; padding-right: 4px;">
+  `;
+
+  keranjangTransaksi.forEach((item, index) => {
+    let badgeColor = item.tipe === 'MASUK' ? 'var(--green)' : (item.tipe === 'KELUAR' ? 'var(--red)' : '#f59e0b');
+    let badgeBg = item.tipe === 'MASUK' ? 'rgba(22, 163, 74, 0.1)' : (item.tipe === 'KELUAR' ? 'rgba(220, 38, 38, 0.1)' : 'rgba(245, 158, 11, 0.1)');
+    
+    html += `
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: #f8fafc;">
+        <div style="flex: 1; overflow: hidden; margin-right: 10px;">
+          <div style="font-weight: 700; font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px;">${item.namaProduk}</div>
+          <div style="font-size: 11px; color: var(--text3); font-weight: 600;">
+            <span style="color: ${badgeColor}; background: ${badgeBg}; padding: 2px 6px; border-radius: 4px;">${item.tipe}</span> 
+            <span style="margin-left: 4px;">R${item.rak} L${item.lantai} B${item.baris}</span>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-weight: 800; font-family: var(--font-mono); font-size: 15px; color: var(--accent); background: rgba(234, 108, 0, 0.1); padding: 4px 10px; border-radius: 6px;">${item.jumlah}</span>
+          <button onclick="hapusItemKeranjang(${index})" style="background: none; color: var(--text3); border: 1px solid var(--border); border-radius: 6px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">✕</button>
+        </div>
+      </div>
+    `;
+  });
+
+  html += `
+    </div>
+    <button onclick="simpanMassal()" class="btn btn-primary" style="width: 100%; font-size: 14px; font-weight: 800; padding: 14px; letter-spacing: 0.5px; box-shadow: 0 4px 12px rgba(234, 108, 0, 0.3);">
+      🚀 SIMPAN ${keranjangTransaksi.length} DATA KE SERVER
+    </button>
+  `;
+
+  container.innerHTML = html;
+}
+
+function hapusItemKeranjang(index) {
+  keranjangTransaksi.splice(index, 1);
+  renderKeranjang();
+}
+
+function kosongkanKeranjang() {
+  if(confirm('Yakin ingin membuang semua barang dari keranjang?')) {
+    keranjangTransaksi = [];
+    renderKeranjang();
+  }
+}
+
+function simpanMassal() {
+  if (keranjangTransaksi.length === 0) return;
+  
+  // Ubah tombol jadi loading visual
+  const btn = document.querySelector('#keranjangContainer .btn-primary');
+  btn.innerHTML = '⏳ SEDANG MENYIMPAN... JANGAN DITUTUP';
+  btn.disabled = true;
+  btn.style.opacity = '0.7';
+
+  showLoading();
+  callAPI('catatTransaksiMassal', keranjangTransaksi)
+    .then(result => {
+      hideLoading();
+      if (result.success) {
+        showToast(result.message, 'success');
+        keranjangTransaksi = []; // Kosongkan keranjang setelah sukses
+        renderKeranjang();
+        
+        // Refresh data otomatis dari server agar Cache memori HP ter-update!
+        setTimeout(() => {
+          if (typeof loadProduk === 'function') loadProduk();
+          if (typeof loadDashboard === 'function') loadDashboard();
+        }, 500);
+      } else {
+        btn.innerHTML = '🚀 SIMPAN ULANG KE SERVER';
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        showToast('Gagal: ' + result.message, 'error');
+      }
+    })
+    .catch(err => {
+      hideLoading();
+      btn.innerHTML = '🚀 SIMPAN ULANG KE SERVER';
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      showToast('Error koneksi: ' + err, 'error');
+    });
+}
 
 
 // =============================================
