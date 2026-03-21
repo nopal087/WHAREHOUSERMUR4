@@ -2069,9 +2069,24 @@ function renderRakGrid() {
         const itemsInSlot = lokasiData.filter(l => l.rak == r && l.lantai == lt && l.baris == b);
         
         if (itemsInSlot.length > 0) {
-          // JIKA ADA BARANGNYA
           const totalQty = itemsInSlot.reduce((sum, item) => sum + (parseInt(item.jumlah) || 0), 0);
-          let namaTeks = itemsInSlot.length === 1 ? itemsInSlot[0].namaProduk : itemsInSlot.length + ' Macam Barang';
+          
+          let namaTeks = '';
+          let satuanTeks = 'pcs'; // Nilai awal (fallback)
+
+          // LOGIKA CERDAS PENCARIAN SATUAN
+          if (itemsInSlot.length === 1) {
+            namaTeks = itemsInSlot[0].namaProduk;
+            // Cari data produk lengkap di memori berdasarkan barcode
+            const prodInfo = allProdukData.find(p => String(p.barcode) === String(itemsInSlot[0].barcode));
+            if (prodInfo && prodInfo.satuan) {
+              // Jika satuannya "Dus, Pcs", ambil "Dus" saja (kata pertama) agar rapi
+              satuanTeks = String(prodInfo.satuan).split(/[,/]/)[0].trim().toLowerCase();
+            }
+          } else {
+            namaTeks = itemsInSlot.length + ' Macam Barang';
+            satuanTeks = 'item'; // Jika dicampur, panggil "item"
+          }
           
           html += `
             <div class="slot-item occupied" onclick="showLokasiDetail(${r},${lt},${b})"
@@ -2085,13 +2100,13 @@ function renderRakGrid() {
                 </span>
               </div>
               
-              <span style="font-size: 12px; font-family: var(--font-mono); font-weight: 700; background: var(--accent); color: #fff; padding: 4px 8px; border-radius: 6px; flex-shrink: 0; margin-left: 8px;">
-                ${totalQty} pcs
+              <span style="font-size: 12px; font-family: var(--font-mono); font-weight: 700; background: var(--accent); color: #fff; padding: 4px 8px; border-radius: 6px; flex-shrink: 0; margin-left: 8px; text-transform: lowercase;">
+                ${totalQty} ${satuanTeks}
               </span>
               
             </div>`;
         } else {
-          // JIKA SLOT KOSONG (Desainnya dibuat pudar/redup agar tidak mendistraksi mata)
+          // SLOT KOSONG
           html += `
             <div class="slot-item empty" title="Kosong"
                  style="display: flex; align-items: center; background: #f8fafc; border: 1px dashed var(--border); padding: 8px 14px; border-radius: 8px;">
@@ -2101,14 +2116,15 @@ function renderRakGrid() {
         }
       }
       
-      html += `</div></div>`; // Tutup baris-list dan lantai-group
+      html += `</div></div>`; 
     }
 
-    html += `</div>`; // Tutup rak-card
+    html += `</div>`; 
   }
 
   grid.innerHTML = html;
 }
+
 function showLokasiDetail(rak, lantai, baris) {
   const items = lokasiData.filter(l => l.rak == rak && l.lantai == lantai && l.baris == baris);
   
